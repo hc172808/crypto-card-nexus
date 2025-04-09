@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,11 @@ import {
   Settings,
   Menu,
   X,
+  ServerCog,
+  Users,
+  UserCheck,
+  Shield,
+  Smartphone,
 } from "lucide-react";
 
 const SidebarLink = ({
@@ -45,7 +50,12 @@ const SidebarLink = ({
 };
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const { pathname } = useLocation();
+  
+  // Determine user role based on pathname
+  const isAdmin = pathname.startsWith("/admin");
+  const isAgent = pathname.startsWith("/agent");
 
   return (
     <div
@@ -71,21 +81,75 @@ export function Sidebar() {
       <Separator className="bg-sidebar-border" />
 
       <div className="flex-1 py-4 px-2 space-y-1">
-        <SidebarLink to="/" icon={Home} collapsed={collapsed}>
-          Dashboard
-        </SidebarLink>
-        <SidebarLink to="/cards" icon={CreditCard} collapsed={collapsed}>
-          Cards
-        </SidebarLink>
-        <SidebarLink to="/wallets" icon={Wallet} collapsed={collapsed}>
-          Wallets
-        </SidebarLink>
-        <SidebarLink to="/transactions" icon={History} collapsed={collapsed}>
-          Transactions
-        </SidebarLink>
-        <SidebarLink to="/settings" icon={Settings} collapsed={collapsed}>
-          Settings
-        </SidebarLink>
+        {/* User Navigation */}
+        {!isAdmin && !isAgent && (
+          <>
+            <SidebarLink to="/" icon={Home} collapsed={collapsed}>
+              Dashboard
+            </SidebarLink>
+            <SidebarLink to="/cards" icon={CreditCard} collapsed={collapsed}>
+              Cards
+            </SidebarLink>
+            <SidebarLink to="/wallets" icon={Wallet} collapsed={collapsed}>
+              Wallets
+            </SidebarLink>
+            <SidebarLink to="/transactions" icon={History} collapsed={collapsed}>
+              Transactions
+            </SidebarLink>
+            <SidebarLink to="/mobile-apps" icon={Smartphone} collapsed={collapsed}>
+              Mobile Apps
+            </SidebarLink>
+            <SidebarLink to="/settings" icon={Settings} collapsed={collapsed}>
+              Settings
+            </SidebarLink>
+          </>
+        )}
+
+        {/* Admin Navigation */}
+        {isAdmin && (
+          <>
+            <SidebarLink to="/admin/server-setup" icon={ServerCog} collapsed={collapsed}>
+              Server Setup
+            </SidebarLink>
+            <SidebarLink to="/admin/users" icon={Users} collapsed={collapsed}>
+              Users
+            </SidebarLink>
+            <SidebarLink to="/admin/agents" icon={UserCheck} collapsed={collapsed}>
+              Agents
+            </SidebarLink>
+            <SidebarLink to="/admin/mobile-apps" icon={Smartphone} collapsed={collapsed}>
+              Mobile Apps
+            </SidebarLink>
+            <SidebarLink to="/" icon={Home} collapsed={collapsed}>
+              Back to Dashboard
+            </SidebarLink>
+          </>
+        )}
+
+        {/* Agent Navigation */}
+        {isAgent && (
+          <>
+            <SidebarLink to="/agent/dashboard" icon={Home} collapsed={collapsed}>
+              Agent Dashboard
+            </SidebarLink>
+            <SidebarLink to="/agent/users" icon={Users} collapsed={collapsed}>
+              Assigned Users
+            </SidebarLink>
+            <SidebarLink to="/" icon={Home} collapsed={collapsed}>
+              Back to Dashboard
+            </SidebarLink>
+          </>
+        )}
+
+        {/* Link to admin section for regular users */}
+        {!isAdmin && !isAgent && (
+          <>
+            <Separator className="my-2 bg-sidebar-border" />
+            <SidebarLink to="/admin/server-setup" icon={Shield} collapsed={collapsed}>
+              Admin Area
+            </SidebarLink>
+          </>
+        )}
       </div>
 
       <div className="p-4">

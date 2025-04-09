@@ -1,325 +1,222 @@
 
-import React from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { 
-  Check, 
-  Copy, 
-  Download, 
-  Server, 
-  Terminal, 
-  ShieldCheck, 
-  Database, 
-  Globe,
-  KeyRound
+import { Separator } from "@/components/ui/separator";
+import {
+  ClipboardCopy,
+  Download,
+  Check,
+  Shield,
+  Terminal,
+  Server,
+  Settings,
+  Eye,
+  EyeOff,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
-export default function ServerSetup() {
+const ServerSetup = () => {
   const { toast } = useToast();
-  
-  const copyToClipboard = (text: string, message: string) => {
+  const [showSecrets, setShowSecrets] = useState(false);
+
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied to clipboard",
-      description: message,
+      description: "You can paste the command now.",
     });
   };
-  
-  const installScriptContent = `#!/bin/bash
-# Crypto Card Nexus - One-Click Production Setup
-# -----------------------------------------------
 
-echo "Starting Crypto Card Nexus installation..."
+  const oneClickSetupScript = `#!/bin/bash
+# One-click setup script for Crypto Card Nexus Server
+echo "Starting Crypto Card Nexus server setup..."
 
 # Update system
 echo "Updating system packages..."
-sudo apt update && sudo apt upgrade -y
+apt-get update && apt-get upgrade -y
 
-# Install dependencies
-echo "Installing dependencies..."
-sudo apt install -y curl git build-essential nginx certbot python3-certbot-nginx ufw
+# Install Docker and Docker Compose
+echo "Installing Docker and Docker Compose..."
+apt-get install -y docker.io docker-compose
+systemctl enable docker
+systemctl start docker
 
-# Install Node.js and npm
-echo "Installing Node.js and npm..."
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-sudo npm install -g pm2
+# Create project directory
+mkdir -p /opt/crypto-card-nexus
+cd /opt/crypto-card-nexus
 
-# Setup firewall
-echo "Setting up firewall..."
-sudo ufw allow 22
-sudo ufw allow 80
-sudo ufw allow 443
-sudo ufw --force enable
+# Create docker-compose.yml
+echo "Creating docker-compose configuration..."
+cat > docker-compose.yml << 'EOL'
+version: '3'
+services:
+  postgres:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: change_this_password
+      POSTGRES_DB: nexus
+    restart: always
+    
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    restart: always
+    
+  backend:
+    image: nexusapp/backend:latest
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://nexus:change_this_password@postgres:5432/nexus
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change_this_secret_key
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    restart: always
+    
+  frontend:
+    image: nexusapp/frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
 
-# Clone repository
-echo "Cloning repository..."
-git clone https://github.com/yourusername/crypto-card-nexus.git
+volumes:
+  postgres_data:
+  redis_data:
+EOL
+
+# Create security configuration
+echo "Setting up security configurations..."
+cat > security-setup.sh << 'EOL'
+#!/bin/bash
+# Setup security features
+
+# Configure firewall
+ufw allow 22
+ufw allow 80
+ufw allow 443
+ufw enable
+
+# Setup automatic updates
+apt-get install -y unattended-upgrades
+dpkg-reconfigure -plow unattended-upgrades
+
+# Setup fail2ban
+apt-get install -y fail2ban
+systemctl enable fail2ban
+systemctl start fail2ban
+
+echo "Security setup complete"
+EOL
+
+chmod +x security-setup.sh
+
+# Create SSL setup script
+cat > setup-ssl.sh << 'EOL'
+#!/bin/bash
+# Setup SSL with Let's Encrypt
+
+# Install Certbot
+apt-get install -y certbot python3-certbot-nginx
+
+# Ask for domain
+read -p "Enter your domain name: " DOMAIN
+
+# Get SSL certificate
+certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN
+
+echo "SSL setup complete for $DOMAIN"
+EOL
+
+chmod +x setup-ssl.sh
+
+# Start services
+echo "Starting services..."
+docker-compose pull
+docker-compose up -d
+
+echo "===================================="
+echo "Crypto Card Nexus setup complete!"
+echo "Access your server at http://YOUR_SERVER_IP"
+echo "Run ./setup-ssl.sh to configure SSL"
+echo "===================================="`;
+
+  const manualSetupInstructions = `
+# Manual Setup Instructions for Crypto Card Nexus
+
+## System Requirements
+- Ubuntu 20.04 LTS or newer
+- 4GB RAM minimum (8GB recommended)
+- 2 CPU cores minimum
+- 20GB storage
+
+## Step 1: Update System
+\`\`\`bash
+sudo apt-get update && sudo apt-get upgrade -y
+\`\`\`
+
+## Step 2: Install Dependencies
+\`\`\`bash
+sudo apt-get install -y nodejs npm postgresql redis-server nginx
+\`\`\`
+
+## Step 3: Configure PostgreSQL
+\`\`\`bash
+sudo -u postgres psql -c "CREATE USER nexus WITH PASSWORD 'your_password';"
+sudo -u postgres psql -c "CREATE DATABASE nexus OWNER nexus;"
+\`\`\`
+
+## Step 4: Clone Repository
+\`\`\`bash
+git clone https://github.com/your-organization/crypto-card-nexus.git
 cd crypto-card-nexus
+\`\`\`
 
-# Install dependencies
-echo "Installing project dependencies..."
+## Step 5: Configure Environment
+Create a .env file with the following settings:
+\`\`\`
+DATABASE_URL=postgresql://nexus:your_password@localhost:5432/nexus
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your_secret_key
+NODE_ENV=production
+PORT=3000
+\`\`\`
+
+## Step 6: Install and Build
+\`\`\`bash
 npm install
-
-# Build project
-echo "Building project..."
 npm run build
+\`\`\`
 
-# Setup PM2 for process management
-echo "Setting up PM2..."
-pm2 start npm --name "crypto-card-nexus" -- run start
-pm2 startup
-pm2 save
+## Step 7: Configure Nginx
+\`\`\`bash
+sudo nano /etc/nginx/sites-available/crypto-card-nexus
+\`\`\`
 
-# Setup Nginx
-echo "Setting up Nginx..."
-sudo tee /etc/nginx/sites-available/crypto-card-nexus <<EOF
+Add the following configuration:
+\`\`\`
 server {
     listen 80;
     server_name your-domain.com;
-    
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-}
-EOF
 
-sudo ln -s /etc/nginx/sites-available/crypto-card-nexus /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-
-# Setup SSL with Let's Encrypt
-echo "Setting up SSL with Let's Encrypt..."
-sudo certbot --nginx -d your-domain.com
-
-echo "Installation completed!"
-echo "Your Crypto Card Nexus application is now running at https://your-domain.com"
-echo "Please update your domain name and environment variables as needed."
-`;
-
-  return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Production Server Setup</h1>
-      <p className="text-muted-foreground mb-8">
-        Complete guide for setting up the Crypto Card Nexus platform on Ubuntu/Linux servers.
-      </p>
-      
-      <Tabs defaultValue="one-click">
-        <TabsList className="grid grid-cols-3 mb-8">
-          <TabsTrigger value="one-click">
-            <Check className="mr-2 h-4 w-4" /> 
-            One-Click Setup
-          </TabsTrigger>
-          <TabsTrigger value="manual">
-            <Terminal className="mr-2 h-4 w-4" />
-            Manual Setup
-          </TabsTrigger>
-          <TabsTrigger value="security">
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            Security Checklist
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="one-click" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Server className="mr-2 h-5 w-5" />
-                One-Click Installation Script
-              </CardTitle>
-              <CardDescription>
-                Deploy the entire platform with a single command on Ubuntu 20.04 or later
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-muted p-4 rounded-md relative">
-                <pre className="text-sm overflow-x-auto whitespace-pre-wrap">
-                  wget -O install.sh https://your-domain.com/install.sh && chmod +x install.sh && sudo ./install.sh
-                </pre>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="absolute top-2 right-2"
-                  onClick={() => copyToClipboard(
-                    "wget -O install.sh https://your-domain.com/install.sh && chmod +x install.sh && sudo ./install.sh",
-                    "Installation command copied"
-                  )}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="font-medium">What this script does:</h3>
-                <ul className="list-disc pl-5 space-y-1 text-sm">
-                  <li>Updates your system packages</li>
-                  <li>Installs Node.js, Nginx, and other dependencies</li>
-                  <li>Sets up your application with PM2 process manager</li>
-                  <li>Configures Nginx as a reverse proxy</li>
-                  <li>Secures your site with SSL via Let's Encrypt</li>
-                  <li>Configures basic firewall rules</li>
-                </ul>
-              </div>
-              
-              <div className="flex justify-between">
-                <Button 
-                  variant="outline"
-                  onClick={() => copyToClipboard(installScriptContent, "Installation script content copied")}
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Script Content
-                </Button>
-                <Button>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Install Script
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Post-Installation Configuration</CardTitle>
-              <CardDescription>
-                Required steps after running the installation script
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ol className="list-decimal pl-5 space-y-3">
-                <li>
-                  <strong>Update Environment Variables</strong>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Create a .env file in your project root with all required API keys and secrets.
-                  </p>
-                </li>
-                <li>
-                  <strong>Setup Database</strong>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Configure your database connection and run migrations.
-                  </p>
-                </li>
-                <li>
-                  <strong>Configure Web3 Providers</strong>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Add your Infura/Alchemy API keys for blockchain interaction.
-                  </p>
-                </li>
-                <li>
-                  <strong>Set Up Payment Processor</strong>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Configure your card issuer API keys (Stripe, Marqeta, etc.)
-                  </p>
-                </li>
-              </ol>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="manual" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Terminal className="mr-2 h-5 w-5" />
-                Step-by-Step Manual Setup
-              </CardTitle>
-              <CardDescription>
-                Complete guide for manual installation on Ubuntu/Debian servers
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center">
-                  <Server className="mr-2 h-4 w-4" />
-                  1. Server Preparation
-                </h3>
-                <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
-                  <p># Update system packages</p>
-                  <pre>sudo apt update && sudo apt upgrade -y</pre>
-                  
-                  <p># Install required dependencies</p>
-                  <pre>sudo apt install -y curl git build-essential nginx</pre>
-                  
-                  <p># Install Node.js and npm</p>
-                  <pre>curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -</pre>
-                  <pre>sudo apt install -y nodejs</pre>
-                  
-                  <p># Install PM2 process manager</p>
-                  <pre>sudo npm install -g pm2</pre>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center">
-                  <Database className="mr-2 h-4 w-4" />
-                  2. Database Setup
-                </h3>
-                <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
-                  <p># Install PostgreSQL</p>
-                  <pre>sudo apt install -y postgresql postgresql-contrib</pre>
-                  
-                  <p># Create database and user</p>
-                  <pre>sudo -u postgres psql</pre>
-                  <pre>CREATE DATABASE cardnexus;</pre>
-                  <pre>CREATE USER cardnexususer WITH ENCRYPTED PASSWORD 'your_secure_password';</pre>
-                  <pre>GRANT ALL PRIVILEGES ON DATABASE cardnexus TO cardnexususer;</pre>
-                  <pre>\q</pre>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center">
-                  <Globe className="mr-2 h-4 w-4" />
-                  3. Application Deployment
-                </h3>
-                <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
-                  <p># Clone repository</p>
-                  <pre>git clone https://github.com/yourusername/crypto-card-nexus.git</pre>
-                  <pre>cd crypto-card-nexus</pre>
-                  
-                  <p># Install dependencies</p>
-                  <pre>npm install</pre>
-                  
-                  <p># Create environment file</p>
-                  <pre>cp .env.example .env</pre>
-                  <pre>nano .env  # Edit with your values</pre>
-                  
-                  <p># Build the application</p>
-                  <pre>npm run build</pre>
-                  
-                  <p># Start with PM2</p>
-                  <pre>pm2 start npm --name "crypto-card-nexus" -- run start</pre>
-                  <pre>pm2 startup</pre>
-                  <pre>pm2 save</pre>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center">
-                  <KeyRound className="mr-2 h-4 w-4" />
-                  4. Nginx & SSL Configuration
-                </h3>
-                <div className="bg-muted p-4 rounded-md space-y-2 text-sm">
-                  <p># Create Nginx configuration</p>
-                  <pre>sudo nano /etc/nginx/sites-available/crypto-card-nexus</pre>
-                  
-                  <p># Add this configuration</p>
-                  <pre>{`server {
-    listen 80;
-    server_name your-domain.com;
-    
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -328,138 +225,251 @@ echo "Please update your domain name and environment variables as needed."
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
     }
-}`}</pre>
-                  
-                  <p># Enable the site and restart Nginx</p>
-                  <pre>sudo ln -s /etc/nginx/sites-available/crypto-card-nexus /etc/nginx/sites-enabled/</pre>
-                  <pre>sudo nginx -t</pre>
-                  <pre>sudo systemctl restart nginx</pre>
-                  
-                  <p># Install Certbot for SSL</p>
-                  <pre>sudo apt install -y certbot python3-certbot-nginx</pre>
-                  <pre>sudo certbot --nginx -d your-domain.com</pre>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="security" className="space-y-6">
+}
+\`\`\`
+
+Enable the site:
+\`\`\`bash
+sudo ln -s /etc/nginx/sites-available/crypto-card-nexus /etc/nginx/sites-enabled/
+sudo systemctl restart nginx
+\`\`\`
+
+## Step 8: Setup SSL with Certbot
+\`\`\`bash
+sudo apt-get install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+\`\`\`
+
+## Step 9: Start the Application
+\`\`\`bash
+npm start
+\`\`\`
+
+## Step 10: Setup Process Manager (PM2)
+\`\`\`bash
+sudo npm install -g pm2
+pm2 start npm --name "crypto-card-nexus" -- start
+pm2 startup
+pm2 save
+\`\`\`
+
+## Security Recommendations
+1. Enable firewall (UFW)
+2. Setup automatic updates
+3. Use strong passwords
+4. Setup fail2ban to prevent brute force attacks
+5. Regularly update system and dependencies
+`;
+
+  const securityRecommendations = [
+    "Use strong, unique passwords for all services",
+    "Enable Two-Factor Authentication for admin accounts",
+    "Keep system and application regularly updated",
+    "Implement IP whitelisting for admin access",
+    "Configure automated backups for database",
+    "Monitor server logs for suspicious activity",
+    "Use dedicated VPS or cloud instance (not shared hosting)",
+    "Implement rate limiting for API endpoints",
+    "Encrypt sensitive data at rest",
+    "Perform regular security audits",
+  ];
+
+  return (
+    <div className="container mx-auto py-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Server Setup Guide</h1>
+        <p className="text-muted-foreground">
+          Complete guide for setting up the Crypto Card Nexus server in
+          production.
+        </p>
+      </div>
+
+      <Tabs defaultValue="one-click">
+        <TabsList className="mb-4">
+          <TabsTrigger value="one-click">One-Click Setup</TabsTrigger>
+          <TabsTrigger value="manual">Manual Installation</TabsTrigger>
+          <TabsTrigger value="security">Security Guidelines</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="one-click">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <ShieldCheck className="mr-2 h-5 w-5" />
-                Production Security Checklist
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                One-Click Server Setup
               </CardTitle>
               <CardDescription>
-                Essential security measures for your production deployment
+                Run our automated script to set up your server in minutes. Works
+                on fresh Ubuntu installations.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Secure Environment Variables</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Never commit .env files to version control. Use environment variables for API keys and secrets.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Firewall Configuration</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Only expose necessary ports (80, 443, 22). Use UFW or similar:
-                    </p>
-                    <pre className="text-xs bg-muted p-2 rounded mt-1">
-                      sudo ufw allow 22 && sudo ufw allow 80 && sudo ufw allow 443 && sudo ufw enable
-                    </pre>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Regular System Updates</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Schedule regular system updates with:
-                    </p>
-                    <pre className="text-xs bg-muted p-2 rounded mt-1">
-                      sudo apt update && sudo apt upgrade -y
-                    </pre>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Database Security</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Use strong passwords and limit database access to localhost. Add in pg_hba.conf:
-                    </p>
-                    <pre className="text-xs bg-muted p-2 rounded mt-1">
-                      host    all     all     127.0.0.1/32     md5
-                    </pre>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">SSL/TLS Configuration</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Ensure your SSL configuration is secure. Test with:
-                    </p>
-                    <pre className="text-xs bg-muted p-2 rounded mt-1">
-                      https://www.ssllabs.com/ssltest/
-                    </pre>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Rate Limiting</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Implement rate limiting in Nginx to prevent abuse. Add to your server block:
-                    </p>
-                    <pre className="text-xs bg-muted p-2 rounded mt-1">
-                      limit_req_zone $binary_remote_addr zone=mylimit:10m rate=10r/s;
-                      limit_req zone=mylimit burst=20 nodelay;
-                    </pre>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Wallet Security</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Never store private keys on your server. Use hardware security modules (HSMs) or dedicated key management services.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-2">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Regular Backups</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Implement automated database backups with:
-                    </p>
-                    <pre className="text-xs bg-muted p-2 rounded mt-1">
-                      pg_dump cardnexus > backup_$(date +%Y%m%d_%H%M%S).sql
-                    </pre>
-                  </div>
-                </div>
+              <div className="bg-muted p-4 rounded-md overflow-auto max-h-[400px]">
+                <pre className="text-xs">{oneClickSetupScript}</pre>
               </div>
             </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => copyToClipboard(oneClickSetupScript)}
+              >
+                <ClipboardCopy className="h-4 w-4 mr-2" />
+                Copy Script
+              </Button>
+
+              <Button>
+                <Download className="h-4 w-4 mr-2" />
+                Download Script
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="manual">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Terminal className="h-5 w-5" />
+                Manual Installation Guide
+              </CardTitle>
+              <CardDescription>
+                Follow these step-by-step instructions to set up your server
+                manually.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="prose prose-sm max-w-none bg-muted p-4 rounded-md overflow-auto max-h-[400px]"
+                dangerouslySetInnerHTML={{ __html: manualSetupInstructions }}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => copyToClipboard(manualSetupInstructions)}
+              >
+                <ClipboardCopy className="h-4 w-4 mr-2" />
+                Copy Instructions
+              </Button>
+
+              <Button>
+                <Download className="h-4 w-4 mr-2" />
+                Download as PDF
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Security Best Practices
+              </CardTitle>
+              <CardDescription>
+                Follow these security guidelines to protect your production
+                server.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                {securityRecommendations.map((recommendation, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3 text-sm bg-muted/40 p-3 rounded-md"
+                  >
+                    <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                    <span>{recommendation}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  copyToClipboard(securityRecommendations.join("\n"))
+                }
+              >
+                <ClipboardCopy className="h-4 w-4 mr-2" />
+                Copy Recommendations
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-8 border rounded-lg p-6 bg-card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Environment Configuration
+          </h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSecrets(!showSecrets)}
+          >
+            {showSecrets ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-muted rounded-md p-4">
+              <p className="text-sm font-medium mb-1">DATABASE_URL</p>
+              <p className="text-xs font-mono">
+                {showSecrets ? (
+                  "postgresql://nexus:your_password@localhost:5432/nexus"
+                ) : (
+                  "••••••••••••••••••••••••••••••••••••••••••••••"
+                )}
+              </p>
+            </div>
+            <div className="bg-muted rounded-md p-4">
+              <p className="text-sm font-medium mb-1">JWT_SECRET</p>
+              <p className="text-xs font-mono">
+                {showSecrets ? (
+                  "change_this_to_a_secure_random_string"
+                ) : (
+                  "••••••••••••••••••••••••••••••••"
+                )}
+              </p>
+            </div>
+            <div className="bg-muted rounded-md p-4">
+              <p className="text-sm font-medium mb-1">REDIS_URL</p>
+              <p className="text-xs font-mono">
+                {showSecrets ? (
+                  "redis://localhost:6379"
+                ) : (
+                  "••••••••••••••••••••"
+                )}
+              </p>
+            </div>
+            <div className="bg-muted rounded-md p-4">
+              <p className="text-sm font-medium mb-1">CARD_API_KEY</p>
+              <p className="text-xs font-mono">
+                {showSecrets ? (
+                  "sk_test_cardissuer12345678901234567890"
+                ) : (
+                  "••••••••••••••••••••••••••••••••"
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+        <Separator className="my-4" />
+        <p className="text-sm text-muted-foreground">
+          These environment variables should be set in your production server.
+          Never share these values with unauthorized individuals.
+        </p>
+      </div>
     </div>
   );
-}
+};
+
+export default ServerSetup;

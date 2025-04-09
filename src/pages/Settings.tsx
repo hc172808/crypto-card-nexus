@@ -1,533 +1,607 @@
+
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, CreditCard, Key, Lock, Shield, User, Copy } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  UserCog,
+  Shield,
+  CreditCard,
+  Bell,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Smartphone,
+  RefreshCcw,
+  ChevronRight,
+  Copy,
+  Lock,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { PinModal } from "@/components/PinModal";
+import { AppDownloadModal } from "@/components/mobile/AppDownloadModal";
 
 const Settings = () => {
-  const [showPinDialog, setShowPinDialog] = useState(false);
-  const [showChangePinDialog, setShowChangePinDialog] = useState(false);
-  const [currentPin, setCurrentPin] = useState("");
-  const [newPin, setNewPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
-  const [pinVerified, setPinVerified] = useState(false);
   const { toast } = useToast();
-  
-  const mockUser = {
-    recoveryPhrase: "kernel zebra frost camel aware forest dune question lock chapter match arena",
-    publicKey: "0x7F5EB5bB5cF88cfcEe9613368636f458800e62CB",
-    hasPin: true,
-  };
-  
-  const handlePinVerification = () => {
-    if (currentPin.length >= 6) {
-      setPinVerified(true);
-      setShowPinDialog(false);
-      toast({
-        title: "PIN Verified",
-        description: "You can now view your recovery phrase"
-      });
-    } else {
-      toast({
-        title: "Invalid PIN",
-        description: "Please enter a valid PIN (6-20 digits)",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const handleChangePin = () => {
-    if (newPin.length < 6 || newPin.length > 20) {
-      toast({
-        title: "Invalid PIN Length",
-        description: "PIN must be 6-20 digits long",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (newPin !== confirmPin) {
-      toast({
-        title: "PINs Don't Match",
-        description: "New PIN and confirmation must match",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    toast({
-      title: "PIN Updated",
-      description: "Your security PIN has been successfully updated"
-    });
-    
-    setShowChangePinDialog(false);
-    setNewPin("");
-    setConfirmPin("");
-  };
-  
-  const copyToClipboard = (text: string, message: string) => {
+  const [showRecoveryPhrase, setShowRecoveryPhrase] = useState(false);
+  const [showPublicKey, setShowPublicKey] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [isChangePinModalOpen, setIsChangePinModalOpen] = useState(false);
+  const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState(false);
+
+  // Mock data - in a real app this would come from a secure store
+  const mockRecoveryPhrase = "shock friend hazard speed slim obvious brave token worry find shoe ocean";
+  const mockPublicKey = "0x3a54f5c2d78b174b13b48b7f6d244eef1c15a5b9";
+
+  const copyToClipboard = (text: string, description: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Copied",
-      description: message
+      title: "Copied to clipboard",
+      description,
     });
   };
-  
-  const resetVerification = () => {
-    setPinVerified(false);
+
+  const verifyPin = () => {
+    setShowRecoveryPhrase(true);
+    toast({
+      title: "PIN Verified",
+      description: "You can now view your recovery phrase",
+    });
   };
-  
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold">Settings</h1>
-      
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid grid-cols-5 md:w-fit mb-6">
-          <TabsTrigger value="profile">
-            <User className="h-4 w-4 mr-2" /> Profile
-          </TabsTrigger>
-          <TabsTrigger value="security">
-            <Shield className="h-4 w-4 mr-2" /> Security
-          </TabsTrigger>
-          <TabsTrigger value="preferences">
-            <Bell className="h-4 w-4 mr-2" /> Notifications
-          </TabsTrigger>
-          <TabsTrigger value="payment">
-            <CreditCard className="h-4 w-4 mr-2" /> Payment
-          </TabsTrigger>
-          <TabsTrigger value="api">
-            <Key className="h-4 w-4 mr-2" /> API
-          </TabsTrigger>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences
+          </p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="profile">
+        <TabsList className="mb-6">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="cards">Cards</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="mobile">Mobile App</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Update your account profile information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex flex-col items-center gap-4 md:w-1/3">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="text-2xl">JD</AvatarFallback>
-                  </Avatar>
-                  <Button variant="outline" size="sm">Update Image</Button>
-                </div>
-                
-                <div className="flex-1 grid gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" defaultValue="John" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" defaultValue="Doe" />
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>
+                  Update your personal details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first-name">First name</Label>
+                    <Input id="first-name" defaultValue="John" />
                   </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" defaultValue="john.doe@example.com" />
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                  <div className="space-y-2">
+                    <Label htmlFor="last-name">Last name</Label>
+                    <Input id="last-name" defaultValue="Doe" />
                   </div>
                 </div>
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <h3 className="font-medium mb-4">Mailing Address</h3>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input id="address" defaultValue="123 Main St" />
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input id="address" defaultValue="123 Main St" />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input id="city" defaultValue="New York" />
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input id="city" defaultValue="San Francisco" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="state">State</Label>
-                      <Input id="state" defaultValue="CA" />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input id="state" defaultValue="NY" />
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="zipCode">ZIP/Postal Code</Label>
-                      <Input id="zipCode" defaultValue="94103" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="country">Country</Label>
-                      <Input id="country" defaultValue="United States" />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zip">ZIP Code</Label>
+                    <Input id="zip" defaultValue="10001" />
                   </div>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button variant="outline">Cancel</Button>
-              <Button>Save Changes</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>Manage your account security preferences</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Security PIN</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Your security PIN is used to protect sensitive information and confirm important actions
-                  </p>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="gap-2"
-                    onClick={() => setShowChangePinDialog(true)}
-                  >
-                    <Lock className="h-4 w-4" />
-                    {mockUser.hasPin ? "Change PIN" : "Set PIN"}
-                  </Button>
-                </div>
-                
-                <Separator />
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Recovery Phrase</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Your recovery phrase can be used to restore access to your wallets. Keep it secret and secure.
-                  </p>
-                  
-                  {pinVerified ? (
-                    <div className="space-y-4">
-                      <Card className="bg-muted/50">
-                        <CardContent className="pt-4">
-                          <div className="flex items-center justify-between">
-                            <p className="font-mono text-sm">{mockUser.recoveryPhrase}</p>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => copyToClipboard(mockUser.recoveryPhrase, "Recovery phrase copied to clipboard")}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-muted-foreground">
-                          Write this down and store it somewhere safe
-                        </p>
-                        <Button variant="outline" size="sm" onClick={resetVerification}>
-                          Hide
-                        </Button>
-                      </div>
+              </CardContent>
+              <CardFooter>
+                <Button>Save Changes</Button>
+              </CardFooter>
+            </Card>
+
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Public Key</CardTitle>
+                  <CardDescription>
+                    Your blockchain wallet address
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Input
+                        className="font-mono pr-10"
+                        readOnly
+                        value={showPublicKey ? mockPublicKey : "••••••••••••••••••••••••••••••••"}
+                      />
+                      <button
+                        className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+                        onClick={() => setShowPublicKey(!showPublicKey)}
+                      >
+                        {showPublicKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                     </div>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      className="gap-2"
-                      onClick={() => setShowPinDialog(true)}
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() =>
+                        copyToClipboard(mockPublicKey, "Public key copied to clipboard")
+                      }
                     >
-                      <Lock className="h-4 w-4" />
-                      View Recovery Phrase
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Public Key
                     </Button>
-                  )}
-                </div>
-                
-                <Separator />
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Public Key</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Your public key is your identity on the blockchain
-                  </p>
-                  
-                  <Card className="bg-muted/50">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between">
-                        <p className="font-mono text-sm truncate">{mockUser.publicKey}</p>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => copyToClipboard(mockUser.publicKey, "Public key copied to clipboard")}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <KeyRound className="h-5 w-5" />
+                    Recovery Phrase
+                  </CardTitle>
+                  <CardDescription>
+                    Your wallet recovery phrase
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {showRecoveryPhrase ? (
+                      <div className="bg-muted p-3 rounded-md">
+                        <p className="font-mono text-sm break-all">{mockRecoveryPhrase}</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-base">Two-Factor Authentication</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Add an extra layer of security to your account
+                    ) : (
+                      <div className="bg-muted p-3 rounded-md flex items-center justify-between">
+                        <p className="font-mono text-sm">••••••• ••••• ••••••</p>
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <Button
+                      className="w-full"
+                      onClick={() => setIsPinModalOpen(true)}
+                      disabled={showRecoveryPhrase}
+                    >
+                      {showRecoveryPhrase ? "Recovery Phrase Revealed" : "View Recovery Phrase"}
+                    </Button>
+                    {showRecoveryPhrase && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() =>
+                          copyToClipboard(mockRecoveryPhrase, "Recovery phrase copied to clipboard")
+                        }
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Recovery Phrase
+                      </Button>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Keep your recovery phrase in a safe place. It provides access to your wallet.
+                      Never share it with anyone.
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Login PIN
+                </CardTitle>
+                <CardDescription>
+                  Manage your login PIN
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-muted p-4 rounded-md">
+                  <p className="text-sm">
+                    Your PIN is required to log in to your account and view sensitive information.
+                    Make sure to use a PIN that is between 6-20 digits long and that you can remember.
+                  </p>
                 </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
+              </CardContent>
+              <CardFooter>
+                <Button onClick={() => setIsChangePinModalOpen(true)}>
+                  Change PIN
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Two-Factor Authentication
+                </CardTitle>
+                <CardDescription>
+                  Add an extra layer of security
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center p-4 border rounded-md">
                   <div>
-                    <Label className="text-base">Email Notifications for Login</Label>
+                    <p className="font-medium">SMS Authentication</p>
                     <p className="text-sm text-muted-foreground">
-                      Receive email notifications for new sign-ins
+                      Receive code via text message
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Button variant="outline">Enable</Button>
                 </div>
                 
-                <Separator />
-                
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center p-4 border rounded-md">
                   <div>
-                    <Label className="text-base">Biometric Authentication</Label>
+                    <p className="font-medium">Authenticator App</p>
                     <p className="text-sm text-muted-foreground">
-                      Use fingerprint or face recognition to access the app
+                      Use Google Authenticator or similar
                     </p>
                   </div>
-                  <Switch />
+                  <Button variant="outline">Enable</Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="mt-6">
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Login Sessions</CardTitle>
+                <CardDescription>
+                  Manage your active sessions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between items-center p-3 bg-muted rounded-md">
+                  <div>
+                    <p className="text-sm font-medium">Current Session</p>
+                    <p className="text-xs text-muted-foreground">
+                      Chrome on Windows • New York, USA
+                    </p>
+                  </div>
+                  <Badge className="bg-green-500">Active</Badge>
+                </div>
+                
+                <div className="flex justify-between items-center p-3 border rounded-md">
+                  <div>
+                    <p className="text-sm font-medium">Mobile App</p>
+                    <p className="text-xs text-muted-foreground">
+                      iPhone 13 • Last active: 2 hours ago
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="sm">Revoke</Button>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline">Logout from All Devices</Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Login History</CardTitle>
+                <CardDescription>
+                  Recent login activity
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="space-y-2">
+                  <div className="flex justify-between p-2 border-b">
+                    <div>
+                      <p className="text-sm font-medium">Today, 10:42 AM</p>
+                      <p className="text-xs text-muted-foreground">Chrome on Windows • New York, USA</p>
+                    </div>
+                    <Badge className="bg-green-500">Success</Badge>
+                  </div>
+                  
+                  <div className="flex justify-between p-2 border-b">
+                    <div>
+                      <p className="text-sm font-medium">Yesterday, 6:30 PM</p>
+                      <p className="text-xs text-muted-foreground">Mobile App • New York, USA</p>
+                    </div>
+                    <Badge className="bg-green-500">Success</Badge>
+                  </div>
+                  
+                  <div className="flex justify-between p-2 border-b">
+                    <div>
+                      <p className="text-sm font-medium">May 15, 2023, 8:15 AM</p>
+                      <p className="text-xs text-muted-foreground">Chrome on Mac • Boston, USA</p>
+                    </div>
+                    <Badge variant="destructive">Failed</Badge>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline">View Full History</Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="cards">
+          <Card>
             <CardHeader>
-              <CardTitle>Transaction Security</CardTitle>
-              <CardDescription>Set up transaction approval requirements</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Card Preferences
+              </CardTitle>
+              <CardDescription>
+                Manage your card settings and preferences
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-base">Require Password for Transactions</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Require your password for all transactions
-                  </p>
-                </div>
-                <Switch defaultChecked />
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Default Card</div>
+                <select className="w-full p-2 border rounded-md">
+                  <option>Virtual Card ending in 3456</option>
+                  <option>Physical Card ending in 7890</option>
+                </select>
               </div>
               
-              <Separator />
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-base">Large Transaction Approval</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Require additional verification for transactions over $1000
-                  </p>
+              <div>
+                <div className="text-sm font-medium mb-2">Transaction Notifications</div>
+                <div className="flex items-center gap-2 mb-2">
+                  <input type="checkbox" id="all-transactions" defaultChecked />
+                  <label htmlFor="all-transactions" className="text-sm">Notify for all transactions</label>
                 </div>
-                <Switch defaultChecked />
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="large-transactions" defaultChecked />
+                  <label htmlFor="large-transactions" className="text-sm">Notify only for transactions over $100</label>
+                </div>
+              </div>
+              
+              <div>
+                <div className="text-sm font-medium mb-2">Automatic Top-up</div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="auto-topup" />
+                  <label htmlFor="auto-topup" className="text-sm">Enable automatic top-up from wallet</label>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="preferences">
+
+        <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>Manage how you receive notifications</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notification Settings
+              </CardTitle>
+              <CardDescription>
+                Manage how you receive notifications
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="font-medium mb-4">Email Notifications</h3>
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-transactions">Transaction Alerts</Label>
-                    <Switch id="email-transactions" defaultChecked />
+                <h3 className="text-lg font-medium mb-3">Email Notifications</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">Transaction Alerts</p>
+                      <p className="text-sm text-muted-foreground">Receive emails for card transactions</p>
+                    </div>
+                    <input type="checkbox" defaultChecked />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-offers">Special Offers</Label>
-                    <Switch id="email-offers" />
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">Security Alerts</p>
+                      <p className="text-sm text-muted-foreground">Login attempts, password changes</p>
+                    </div>
+                    <input type="checkbox" defaultChecked />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-security">Security Alerts</Label>
-                    <Switch id="email-security" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-newsletter">Monthly Newsletter</Label>
-                    <Switch id="email-newsletter" />
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">Crypto Price Alerts</p>
+                      <p className="text-sm text-muted-foreground">Get notified of significant price changes</p>
+                    </div>
+                    <input type="checkbox" />
                   </div>
                 </div>
               </div>
-              
-              <Separator />
-              
+
               <div>
-                <h3 className="font-medium mb-4">Push Notifications</h3>
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-transactions">Transaction Alerts</Label>
-                    <Switch id="push-transactions" defaultChecked />
+                <h3 className="text-lg font-medium mb-3">Push Notifications</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">Mobile App Notifications</p>
+                      <p className="text-sm text-muted-foreground">Enable push notifications on your device</p>
+                    </div>
+                    <input type="checkbox" defaultChecked />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-security">Security Alerts</Label>
-                    <Switch id="push-security" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-price">Price Alerts</Label>
-                    <Switch id="push-price" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-news">News & Updates</Label>
-                    <Switch id="push-news" />
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">Card Usage Alerts</p>
+                      <p className="text-sm text-muted-foreground">Receive alerts when your card is used</p>
+                    </div>
+                    <input type="checkbox" defaultChecked />
                   </div>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
+            <CardFooter>
               <Button>Save Preferences</Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="payment">
-          <Card>
+
+        <TabsContent value="mobile">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5" />
+                  Mobile App
+                </CardTitle>
+                <CardDescription>
+                  Manage the Crypto Card Nexus mobile app
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col items-center text-center p-4">
+                  <Smartphone className="h-16 w-16 mb-4 text-primary" />
+                  <h3 className="text-lg font-medium">Download the Mobile App</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Access your cards, wallets, and transactions on the go with our mobile app
+                  </p>
+                  <Button onClick={() => setIsAppDownloadModalOpen(true)}>
+                    Download Mobile App
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Connected Devices</CardTitle>
+                <CardDescription>
+                  Manage devices linked to your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="p-3 border rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">iPhone 13 Pro</p>
+                        <p className="text-xs text-muted-foreground">iOS 16.2 • Last active: 2 hours ago</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm">Disconnect</Button>
+                  </div>
+                </div>
+                <div className="p-3 border rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <Smartphone className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Samsung Galaxy S22</p>
+                        <p className="text-xs text-muted-foreground">Android 13 • Last active: 5 days ago</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm">Disconnect</Button>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full">
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  Refresh Devices
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          
+          <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>Manage your payment methods and preferences</CardDescription>
+              <CardTitle>Mobile Features</CardTitle>
+              <CardDescription>
+                Features available in the mobile app
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <p>Payment settings will appear here after setting up your first card.</p>
-                <Button className="mt-4">Set Up Card</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="api">
-          <Card>
-            <CardHeader>
-              <CardTitle>API Access</CardTitle>
-              <CardDescription>Manage your API keys for integration</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <p>API access requires KYC verification.</p>
-                <Button className="mt-4">Verify Identity</Button>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="border rounded-md p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                    <h3 className="font-medium mb-2">Biometric Authentication</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Secure login with fingerprint or Face ID
+                    </p>
+                    <p className="flex items-center text-xs text-primary">
+                      Learn more
+                      <ChevronRight className="h-3 w-3 ml-1" />
+                    </p>
+                  </div>
+                  
+                  <div className="border rounded-md p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                    <h3 className="font-medium mb-2">Push Notifications</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Real-time alerts for transactions
+                    </p>
+                    <p className="flex items-center text-xs text-primary">
+                      Learn more
+                      <ChevronRight className="h-3 w-3 ml-1" />
+                    </p>
+                  </div>
+                  
+                  <div className="border rounded-md p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                    <h3 className="font-medium mb-2">Wallet Connect</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Connect to blockchain wallets
+                    </p>
+                    <p className="flex items-center text-xs text-primary">
+                      Learn more
+                      <ChevronRight className="h-3 w-3 ml-1" />
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
       
-      <Dialog open={showPinDialog} onOpenChange={setShowPinDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enter Your PIN</DialogTitle>
-            <DialogDescription>
-              Please enter your security PIN to view your recovery phrase
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center py-4 space-y-4">
-            <InputOTP maxLength={20} value={currentPin} onChange={setCurrentPin}>
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-              <p className="text-sm text-muted-foreground mt-2">Continue entering your PIN (6-20 digits)</p>
-            </InputOTP>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPinDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handlePinVerification}>
-              Verify
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modals */}
+      <PinModal 
+        open={isPinModalOpen} 
+        onOpenChange={setIsPinModalOpen} 
+        onSuccess={verifyPin}
+        isNewPin={false}
+      />
       
-      <Dialog open={showChangePinDialog} onOpenChange={setShowChangePinDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{mockUser.hasPin ? "Change" : "Set"} Your PIN</DialogTitle>
-            <DialogDescription>
-              {mockUser.hasPin 
-                ? "Enter a new security PIN (6-20 digits)" 
-                : "Create a security PIN to protect your account (6-20 digits)"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-4">
-            {mockUser.hasPin && (
-              <div className="grid gap-2">
-                <Label htmlFor="current-pin">Current PIN</Label>
-                <Input 
-                  id="current-pin"
-                  type="password" 
-                  placeholder="Enter your current PIN" 
-                  value={currentPin}
-                  onChange={(e) => setCurrentPin(e.target.value)}
-                />
-              </div>
-            )}
-            <div className="grid gap-2">
-              <Label htmlFor="new-pin">New PIN</Label>
-              <Input 
-                id="new-pin"
-                type="password" 
-                placeholder="Enter new PIN (6-20 digits)" 
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="confirm-pin">Confirm PIN</Label>
-              <Input 
-                id="confirm-pin"
-                type="password" 
-                placeholder="Confirm new PIN" 
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowChangePinDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleChangePin}>
-              {mockUser.hasPin ? "Update PIN" : "Set PIN"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PinModal 
+        open={isChangePinModalOpen} 
+        onOpenChange={setIsChangePinModalOpen} 
+        onSuccess={() => {
+          toast({
+            title: "PIN Changed",
+            description: "Your PIN has been updated successfully",
+          });
+        }}
+        isNewPin={true}
+      />
+      
+      <AppDownloadModal
+        open={isAppDownloadModalOpen}
+        onOpenChange={setIsAppDownloadModalOpen}
+      />
     </div>
   );
 };

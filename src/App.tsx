@@ -12,6 +12,12 @@ import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ServerSetup from "./pages/admin/ServerSetup";
+import UsersAdminPage from "./pages/admin/Users";
+import AgentsAdminPage from "./pages/admin/Agents";
+import MobileAppsAdminPage from "./pages/admin/MobileApps";
+import AgentDashboard from "./pages/agent/Dashboard";
+import AgentUsersPage from "./pages/agent/Users";
+import MobileApps from "./pages/MobileApps";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +34,17 @@ const App = () => (
             <Route path="wallets" element={<Wallets />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="mobile-apps" element={<MobileApps />} />
+            
+            {/* Admin Pages */}
             <Route path="admin/server-setup" element={<ServerSetup />} />
+            <Route path="admin/users" element={<UsersAdminPage />} />
+            <Route path="admin/agents" element={<AgentsAdminPage />} />
+            <Route path="admin/mobile-apps" element={<MobileAppsAdminPage />} />
+            
+            {/* Agent Pages */}
+            <Route path="agent/dashboard" element={<AgentDashboard />} />
+            <Route path="agent/users" element={<AgentUsersPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
