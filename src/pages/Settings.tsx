@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -8,9 +7,84 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, CreditCard, Key, Lock, Shield, User } from "lucide-react";
+import { Bell, CreditCard, Key, Lock, Shield, User, Copy } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [showChangePinDialog, setShowChangePinDialog] = useState(false);
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinVerified, setPinVerified] = useState(false);
+  const { toast } = useToast();
+  
+  const mockUser = {
+    recoveryPhrase: "kernel zebra frost camel aware forest dune question lock chapter match arena",
+    publicKey: "0x7F5EB5bB5cF88cfcEe9613368636f458800e62CB",
+    hasPin: true,
+  };
+  
+  const handlePinVerification = () => {
+    if (currentPin.length >= 6) {
+      setPinVerified(true);
+      setShowPinDialog(false);
+      toast({
+        title: "PIN Verified",
+        description: "You can now view your recovery phrase"
+      });
+    } else {
+      toast({
+        title: "Invalid PIN",
+        description: "Please enter a valid PIN (6-20 digits)",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleChangePin = () => {
+    if (newPin.length < 6 || newPin.length > 20) {
+      toast({
+        title: "Invalid PIN Length",
+        description: "PIN must be 6-20 digits long",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (newPin !== confirmPin) {
+      toast({
+        title: "PINs Don't Match",
+        description: "New PIN and confirmation must match",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "PIN Updated",
+      description: "Your security PIN has been successfully updated"
+    });
+    
+    setShowChangePinDialog(false);
+    setNewPin("");
+    setConfirmPin("");
+  };
+  
+  const copyToClipboard = (text: string, message: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: message
+    });
+  };
+  
+  const resetVerification = () => {
+    setPinVerified(false);
+  };
+  
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-3xl font-bold">Settings</h1>
@@ -123,6 +197,93 @@ const Settings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Security PIN</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your security PIN is used to protect sensitive information and confirm important actions
+                  </p>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="gap-2"
+                    onClick={() => setShowChangePinDialog(true)}
+                  >
+                    <Lock className="h-4 w-4" />
+                    {mockUser.hasPin ? "Change PIN" : "Set PIN"}
+                  </Button>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Recovery Phrase</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your recovery phrase can be used to restore access to your wallets. Keep it secret and secure.
+                  </p>
+                  
+                  {pinVerified ? (
+                    <div className="space-y-4">
+                      <Card className="bg-muted/50">
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between">
+                            <p className="font-mono text-sm">{mockUser.recoveryPhrase}</p>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => copyToClipboard(mockUser.recoveryPhrase, "Recovery phrase copied to clipboard")}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-muted-foreground">
+                          Write this down and store it somewhere safe
+                        </p>
+                        <Button variant="outline" size="sm" onClick={resetVerification}>
+                          Hide
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={() => setShowPinDialog(true)}
+                    >
+                      <Lock className="h-4 w-4" />
+                      View Recovery Phrase
+                    </Button>
+                  )}
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Public Key</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your public key is your identity on the blockchain
+                  </p>
+                  
+                  <Card className="bg-muted/50">
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-mono text-sm truncate">{mockUser.publicKey}</p>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => copyToClipboard(mockUser.publicKey, "Public key copied to clipboard")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <Separator />
+                
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base">Two-Factor Authentication</Label>
@@ -155,15 +316,6 @@ const Settings = () => {
                     </p>
                   </div>
                   <Switch />
-                </div>
-                
-                <Separator />
-                
-                <div>
-                  <Button variant="outline" className="gap-2">
-                    <Lock className="h-4 w-4" />
-                    Change Password
-                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -289,6 +441,93 @@ const Settings = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <Dialog open={showPinDialog} onOpenChange={setShowPinDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter Your PIN</DialogTitle>
+            <DialogDescription>
+              Please enter your security PIN to view your recovery phrase
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center py-4 space-y-4">
+            <InputOTP maxLength={20} value={currentPin} onChange={setCurrentPin}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+              <p className="text-sm text-muted-foreground mt-2">Continue entering your PIN (6-20 digits)</p>
+            </InputOTP>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPinDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handlePinVerification}>
+              Verify
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={showChangePinDialog} onOpenChange={setShowChangePinDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{mockUser.hasPin ? "Change" : "Set"} Your PIN</DialogTitle>
+            <DialogDescription>
+              {mockUser.hasPin 
+                ? "Enter a new security PIN (6-20 digits)" 
+                : "Create a security PIN to protect your account (6-20 digits)"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            {mockUser.hasPin && (
+              <div className="grid gap-2">
+                <Label htmlFor="current-pin">Current PIN</Label>
+                <Input 
+                  id="current-pin"
+                  type="password" 
+                  placeholder="Enter your current PIN" 
+                  value={currentPin}
+                  onChange={(e) => setCurrentPin(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="grid gap-2">
+              <Label htmlFor="new-pin">New PIN</Label>
+              <Input 
+                id="new-pin"
+                type="password" 
+                placeholder="Enter new PIN (6-20 digits)" 
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="confirm-pin">Confirm PIN</Label>
+              <Input 
+                id="confirm-pin"
+                type="password" 
+                placeholder="Confirm new PIN" 
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowChangePinDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangePin}>
+              {mockUser.hasPin ? "Update PIN" : "Set PIN"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
