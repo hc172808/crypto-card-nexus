@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CreditCard, User, Wallet } from "lucide-react";
+import { Clock, CreditCard, User, Wallet, DollarSign } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export type TransactionType = {
@@ -21,6 +21,7 @@ export type TransactionType = {
   amount: number;
   status: "completed" | "pending" | "failed";
   details?: Record<string, string>;
+  fee?: number;
 };
 
 interface TransactionModalProps {
@@ -44,6 +45,9 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
         return "bg-gray-500";
     }
   };
+
+  // Calculate fee or use default
+  const transactionFee = transaction.fee || (Math.abs(transaction.amount) * 0.01).toFixed(2);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -101,6 +105,17 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
                 <div className="text-sm text-muted-foreground">Payment Method</div>
                 <div className="font-medium">
                   {transaction.type === "card" ? "Virtual Card" : "Crypto Wallet"}
+                </div>
+              </div>
+            </div>
+            
+            {/* Add transaction fee section */}
+            <div className="flex gap-3 items-center">
+              <DollarSign className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <div className="text-sm text-muted-foreground">Transaction Fee</div>
+                <div className="font-medium">
+                  ${transactionFee} <span className="text-xs text-muted-foreground">(to admin wallet)</span>
                 </div>
               </div>
             </div>

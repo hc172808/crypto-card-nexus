@@ -3,6 +3,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
+import { Toaster } from "@/components/ui/toaster";
 
 export function AppLayout() {
   return (
@@ -14,6 +15,7 @@ export function AppLayout() {
           <Outlet />
         </div>
       </main>
+      <Toaster />
     </div>
   );
 }

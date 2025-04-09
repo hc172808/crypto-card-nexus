@@ -8,8 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddFundsModal } from "@/components/modals/AddFundsModal";
 import { CardType } from "@/components/cards/CardItem";
 import { useToast } from "@/hooks/use-toast";
+import { AddWalletModal } from "@/components/wallets/AddWalletModal";
+import { WalletDetailsModal } from "@/components/wallets/WalletDetailsModal";
 
-// Demo wallet data
+// Demo wallet data with recovery phrases
 const demoWallets: WalletType[] = [
   {
     id: "wallet-1",
@@ -20,6 +22,8 @@ const demoWallets: WalletType[] = [
       amount: 1.245,
       usdValue: 3200.87,
     },
+    name: "My Ethereum Wallet",
+    hasRecoveryPhrase: true,
   },
   {
     id: "wallet-2",
@@ -30,6 +34,7 @@ const demoWallets: WalletType[] = [
       amount: 5.78,
       usdValue: 1004.76,
     },
+    hasRecoveryPhrase: false,
   },
 ];
 
@@ -49,6 +54,8 @@ const Wallets = () => {
   const { toast } = useToast();
   const [wallets, setWallets] = React.useState<WalletType[]>(demoWallets);
   const [isFundModalOpen, setIsFundModalOpen] = React.useState(false);
+  const [isAddWalletModalOpen, setIsAddWalletModalOpen] = React.useState(false);
+  const [isWalletDetailsModalOpen, setIsWalletDetailsModalOpen] = React.useState(false);
   const [selectedWallet, setSelectedWallet] = React.useState<WalletType | undefined>();
   const hasWallets = wallets.length > 0;
 
@@ -57,11 +64,25 @@ const Wallets = () => {
       title: "Connecting wallet",
       description: `Connecting to ${provider}...`,
     });
+    setIsAddWalletModalOpen(true);
   };
 
   const handleTransact = (wallet: WalletType) => {
     setSelectedWallet(wallet);
     setIsFundModalOpen(true);
+  };
+  
+  const handleAddWallet = (walletData: WalletType) => {
+    setWallets((prev) => [...prev, walletData]);
+  };
+  
+  const handleRemoveWallet = (walletId: string) => {
+    setWallets((prev) => prev.filter(wallet => wallet.id !== walletId));
+  };
+  
+  const handleViewWalletDetails = (wallet: WalletType) => {
+    setSelectedWallet(wallet);
+    setIsWalletDetailsModalOpen(true);
   };
 
   return (
@@ -69,7 +90,7 @@ const Wallets = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Wallet Management</h1>
         
-        <Button>
+        <Button onClick={() => setIsAddWalletModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Connect New Wallet
         </Button>
@@ -107,6 +128,13 @@ const Wallets = () => {
                     <div className="text-sm text-muted-foreground">Connected Wallets</div>
                     <div className="text-2xl font-bold">{wallets.length}</div>
                   </div>
+                  
+                  <div className="bg-card p-4 rounded-lg border">
+                    <div className="text-sm text-muted-foreground">With Recovery Phrase</div>
+                    <div className="text-2xl font-bold">
+                      {wallets.filter(w => w.hasRecoveryPhrase).length}/{wallets.length}
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -118,6 +146,7 @@ const Wallets = () => {
                       key={wallet.id}
                       wallet={wallet}
                       onTransact={handleTransact}
+                      onViewDetails={handleViewWalletDetails}
                     />
                   ))}
                 </div>
@@ -132,11 +161,16 @@ const Wallets = () => {
                   key={wallet.id}
                   wallet={wallet}
                   onTransact={handleTransact}
+                  onViewDetails={handleViewWalletDetails}
                 />
               ))}
               
               <div className="border-2 border-dashed rounded-lg flex items-center justify-center p-6 h-full">
-                <Button variant="outline" className="flex flex-col gap-2 h-auto py-8">
+                <Button 
+                  variant="outline" 
+                  className="flex flex-col gap-2 h-auto py-8"
+                  onClick={() => setIsAddWalletModalOpen(true)}
+                >
                   <Plus className="h-10 w-10" />
                   <span>Connect New Wallet</span>
                 </Button>
@@ -165,6 +199,10 @@ const Wallets = () => {
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 Monitor your balances across multiple chains
               </li>
+              <li className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Secure your assets with recovery phrases
+              </li>
             </ul>
           </div>
           
@@ -177,6 +215,19 @@ const Wallets = () => {
         onClose={() => setIsFundModalOpen(false)}
         card={demoCard}
         wallets={wallets}
+      />
+      
+      <AddWalletModal
+        isOpen={isAddWalletModalOpen}
+        onClose={() => setIsAddWalletModalOpen(false)}
+        onAddWallet={handleAddWallet}
+      />
+      
+      <WalletDetailsModal
+        isOpen={isWalletDetailsModalOpen}
+        onClose={() => setIsWalletDetailsModalOpen(false)}
+        onRemove={handleRemoveWallet}
+        wallet={selectedWallet}
       />
     </div>
   );

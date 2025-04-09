@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Copy, ExternalLink } from "lucide-react";
+import { ArrowUpRight, Copy, ExternalLink, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export type Chain = "ethereum" | "binance" | "polygon";
@@ -16,11 +16,15 @@ export type WalletType = {
     amount: number;
     usdValue: number;
   };
+  name?: string;
+  hasRecoveryPhrase?: boolean;
+  recoveryPhrase?: string;
 };
 
 interface WalletItemProps {
   wallet: WalletType;
   onTransact: (wallet: WalletType) => void;
+  onViewDetails: (wallet: WalletType) => void;
 }
 
 const getChainDetails = (chain: Chain) => {
@@ -34,7 +38,7 @@ const getChainDetails = (chain: Chain) => {
   }
 };
 
-export function WalletItem({ wallet, onTransact }: WalletItemProps) {
+export function WalletItem({ wallet, onTransact, onViewDetails }: WalletItemProps) {
   const { toast } = useToast();
   
   const chainDetails = getChainDetails(wallet.chain);
@@ -57,7 +61,8 @@ export function WalletItem({ wallet, onTransact }: WalletItemProps) {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-xl">{chainDetails.logo}</span>
-            <div className="font-medium">{chainDetails.name}</div>
+            <div className="font-medium">{wallet.name || chainDetails.name}</div>
+            {wallet.hasRecoveryPhrase && <Key size={12} className="text-green-500" />}
           </div>
           <div 
             className="flex items-center gap-1 text-sm text-muted-foreground cursor-pointer hover:text-foreground"
@@ -89,8 +94,12 @@ export function WalletItem({ wallet, onTransact }: WalletItemProps) {
             >
               Fund Card
             </Button>
-            <Button variant="outline" size="icon">
-              <ArrowUpRight className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => onViewDetails(wallet)}
+            >
+              <Key className="h-4 w-4" />
             </Button>
             <Button 
               variant="outline" 
