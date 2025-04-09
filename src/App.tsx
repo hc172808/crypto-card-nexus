@@ -11,6 +11,7 @@ import Wallets from "./pages/Wallets";
 import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ServerSetup from "./pages/admin/ServerSetup";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="wallets" element={<Wallets />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="admin/server-setup" element={<ServerSetup />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Wallet, QrCode, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export type WalletProvider = "metamask" | "walletconnect" | "coinbase";
+export type WalletProvider = "metamask" | "walletconnect" | "coinbase" | "trust" | "phantom";
 
 interface WalletConnectProps {
   onConnect: (provider: WalletProvider) => void;
@@ -43,6 +43,28 @@ export function WalletConnect({ onConnect }: WalletConnectProps) {
             alt="MetaMask"
           />
           Connect with MetaMask
+        </Button>
+        <Button
+          className="w-full bg-[#3375BB] hover:bg-[#2A65A7] text-white"
+          onClick={() => onConnect("trust")}
+        >
+          <img 
+            src="https://trustwallet.com/assets/images/favicon.png"
+            className="h-5 w-5 mr-2" 
+            alt="Trust Wallet"
+          />
+          Connect with Trust Wallet
+        </Button>
+        <Button
+          className="w-full bg-[#AB9FF2] hover:bg-[#9D8FE3] text-white"
+          onClick={() => onConnect("phantom")}
+        >
+          <img 
+            src="https://phantom.app/favicon.ico"
+            className="h-5 w-5 mr-2" 
+            alt="Phantom"
+          />
+          Connect with Phantom (Solana)
         </Button>
         <Button 
           className="w-full bg-blue-600 hover:bg-blue-700 text-white"

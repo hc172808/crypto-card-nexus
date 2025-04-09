@@ -35,6 +35,16 @@ export function AddWalletModal({ open, onOpenChange, onAddWallet }: AddWalletMod
       return;
     }
     
+    // Validate address format based on chain
+    if (!isValidAddress(walletAddress, chain)) {
+      toast({
+        title: "Invalid address format",
+        description: `Please enter a valid ${getChainName(chain)} address`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Create a new wallet
     const newWallet = {
       id: `wallet-${Date.now()}`,
@@ -59,12 +69,35 @@ export function AddWalletModal({ open, onOpenChange, onAddWallet }: AddWalletMod
     });
   };
   
+  const isValidAddress = (address: string, chain: Chain): boolean => {
+    // Basic validation patterns for different blockchains
+    const patterns = {
+      ethereum: /^0x[a-fA-F0-9]{40}$/,
+      binance: /^0x[a-fA-F0-9]{40}$/,
+      polygon: /^0x[a-fA-F0-9]{40}$/,
+      solana: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
+    };
+    
+    return patterns[chain].test(address);
+  };
+  
   const getChainCoin = (chain: Chain): string => {
     switch (chain) {
       case "ethereum": return "ETH";
       case "binance": return "BNB";
       case "polygon": return "MATIC";
+      case "solana": return "SOL";
       default: return "ETH";
+    }
+  };
+  
+  const getChainName = (chain: Chain): string => {
+    switch (chain) {
+      case "ethereum": return "Ethereum";
+      case "binance": return "Binance Smart Chain";
+      case "polygon": return "Polygon";
+      case "solana": return "Solana";
+      default: return "Ethereum";
     }
   };
   
@@ -107,7 +140,7 @@ export function AddWalletModal({ open, onOpenChange, onAddWallet }: AddWalletMod
               <Label htmlFor="wallet-address" className="required">Wallet Address</Label>
               <Input
                 id="wallet-address"
-                placeholder="0x..."
+                placeholder={chain === "solana" ? "Enter Solana address" : "0x..."}
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
                 required
@@ -124,6 +157,7 @@ export function AddWalletModal({ open, onOpenChange, onAddWallet }: AddWalletMod
                   <SelectItem value="ethereum">Ethereum</SelectItem>
                   <SelectItem value="binance">Binance Smart Chain</SelectItem>
                   <SelectItem value="polygon">Polygon</SelectItem>
+                  <SelectItem value="solana">Solana</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Copy, ExternalLink, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export type Chain = "ethereum" | "binance" | "polygon";
+export type Chain = "ethereum" | "binance" | "polygon" | "solana";
 
 export type WalletType = {
   id: string;
@@ -35,6 +35,8 @@ const getChainDetails = (chain: Chain) => {
       return { name: "Binance Smart Chain", logo: "🟡", explorer: "https://bscscan.com/address/" };
     case "polygon":
       return { name: "Polygon", logo: "🟣", explorer: "https://polygonscan.com/address/" };
+    case "solana":
+      return { name: "Solana", logo: "🟪", explorer: "https://solscan.io/account/" };
   }
 };
 

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Grid2X2, Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -218,8 +217,8 @@ const Wallets = () => {
       />
       
       <AddWalletModal
-        isOpen={isAddWalletModalOpen}
-        onClose={() => setIsAddWalletModalOpen(false)}
+        open={isAddWalletModalOpen}
+        onOpenChange={setIsAddWalletModalOpen}
         onAddWallet={handleAddWallet}
       />
       
