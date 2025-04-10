@@ -15,6 +15,7 @@ import ServerSetup from "./pages/admin/ServerSetup";
 import UsersAdminPage from "./pages/admin/Users";
 import AgentsAdminPage from "./pages/admin/Agents";
 import MobileAppsAdminPage from "./pages/admin/MobileApps";
+import MySQLAdminPage from "./pages/admin/MySQLAdmin";
 import AgentDashboard from "./pages/agent/Dashboard";
 import AgentUsersPage from "./pages/agent/Users";
 import AgentCardPrinting from "./pages/agent/CardPrinting";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="admin/users" element={<UsersAdminPage />} />
             <Route path="admin/agents" element={<AgentsAdminPage />} />
             <Route path="admin/mobile-apps" element={<MobileAppsAdminPage />} />
+            <Route path="admin/mysql-admin" element={<MySQLAdminPage />} />
             
             {/* Agent Pages */}
             <Route path="agent/dashboard" element={<AgentDashboard />} />

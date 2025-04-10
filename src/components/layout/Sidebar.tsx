@@ -20,6 +20,7 @@ import {
   Key,
   Printer,
   CreditCardIcon,
+  Database,
 } from "lucide-react";
 
 const SidebarLink = ({
@@ -128,6 +129,9 @@ export function Sidebar() {
             </SidebarLink>
             <SidebarLink to="/admin/mobile-apps" icon={Smartphone} collapsed={collapsed}>
               Mobile Apps
+            </SidebarLink>
+            <SidebarLink to="/admin/mysql-admin" icon={Database} collapsed={collapsed}>
+              MySQL Admin
             </SidebarLink>
             <SidebarLink to="/" icon={Home} collapsed={collapsed}>
               Back to Dashboard
