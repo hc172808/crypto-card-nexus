@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   Card, 
   CardContent, 
@@ -13,7 +13,17 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Plus, Trash2, Building, CreditCardIcon, Wallet, RefreshCw } from "lucide-react";
+import { 
+  CreditCard, 
+  Plus, 
+  Trash2, 
+  Building, 
+  CreditCardIcon, 
+  Wallet, 
+  RefreshCw,
+  CheckCircle,
+  AlertCircle
+} from "lucide-react";
 
 interface PaymentMethod {
   id: string;
