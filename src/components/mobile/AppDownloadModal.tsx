@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { QrCode, Download, AppleIcon, AndroidIcon, Smartphone } from "lucide-react";
+import { QrCode, Download, Smartphone, Apple } from "lucide-react";
 
 interface AppDownloadModalProps {
   open: boolean;
@@ -34,11 +34,11 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
         <Tabs defaultValue="ios" className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="ios" className="flex items-center gap-2">
-              <AppleIcon className="h-4 w-4" />
+              <Apple className="h-4 w-4" />
               iOS App
             </TabsTrigger>
             <TabsTrigger value="android" className="flex items-center gap-2">
-              <AndroidIcon className="h-4 w-4" />
+              <Smartphone className="h-4 w-4" />
               Android App
             </TabsTrigger>
           </TabsList>
@@ -52,7 +52,7 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
               <br /> or click below to visit the App Store
             </p>
             <Button className="w-full" variant="outline">
-              <AppleIcon className="h-4 w-4 mr-2" />
+              <Apple className="h-4 w-4 mr-2" />
               Download on the App Store
             </Button>
           </TabsContent>
@@ -66,7 +66,7 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
               <br /> or click below for direct APK download
             </p>
             <Button className="w-full" variant="outline">
-              <AndroidIcon className="h-4 w-4 mr-2" />
+              <Smartphone className="h-4 w-4 mr-2" />
               Download on Google Play
             </Button>
             <Button className="w-full" variant="secondary">

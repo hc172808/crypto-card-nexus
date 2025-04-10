@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MobileCapacitorSetup } from "@/components/mobile/MobileCapacitorSetup";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Smartphone, Download, AppleIcon, AndroidIcon, Info } from "lucide-react";
+import { Smartphone, Download, Apple, Info } from "lucide-react";
 
 const MobileApps = () => {
   return (
@@ -49,7 +49,7 @@ const MobileApps = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AppleIcon className="h-5 w-5" />
+                  <Apple className="h-5 w-5" />
                   iOS Application
                 </CardTitle>
                 <CardDescription>
@@ -72,7 +72,7 @@ const MobileApps = () => {
               </CardContent>
               <CardFooter>
                 <Button className="w-full">
-                  <AppleIcon className="h-4 w-4 mr-2" />
+                  <Apple className="h-4 w-4 mr-2" />
                   Download iOS App
                 </Button>
               </CardFooter>
@@ -81,7 +81,7 @@ const MobileApps = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AndroidIcon className="h-5 w-5" />
+                  <Smartphone className="h-5 w-5" />
                   Android Application
                 </CardTitle>
                 <CardDescription>
@@ -104,7 +104,7 @@ const MobileApps = () => {
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
                 <Button className="w-full">
-                  <AndroidIcon className="h-4 w-4 mr-2" />
+                  <Smartphone className="h-4 w-4 mr-2" />
                   Play Store
                 </Button>
                 <Button variant="outline" className="w-full">

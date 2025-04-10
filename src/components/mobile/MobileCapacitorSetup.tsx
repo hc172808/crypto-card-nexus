@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Card,
@@ -16,8 +15,7 @@ import {
   Code,
   CopyCheck,
   ExternalLink,
-  AppleIcon,
-  AndroidIcon,
+  Apple,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -133,7 +131,7 @@ npx cap open android # For Android
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AppleIcon className="h-5 w-5" />
+              <Apple className="h-5 w-5" />
               iOS Setup
             </CardTitle>
             <CardDescription>
@@ -177,7 +175,7 @@ npx cap open android # For Android
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AndroidIcon className="h-5 w-5" />
+              <Smartphone className="h-5 w-5" />
               Android Setup
             </CardTitle>
             <CardDescription>
