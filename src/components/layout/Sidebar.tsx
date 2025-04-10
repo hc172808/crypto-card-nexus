@@ -21,6 +21,8 @@ import {
   Printer,
   CreditCardIcon,
   Database,
+  Download,
+  HardDrive,
 } from "lucide-react";
 
 const SidebarLink = ({
@@ -132,6 +134,9 @@ export function Sidebar() {
             </SidebarLink>
             <SidebarLink to="/admin/mysql-admin" icon={Database} collapsed={collapsed}>
               MySQL Admin
+            </SidebarLink>
+            <SidebarLink to="/admin/backup" icon={HardDrive} collapsed={collapsed}>
+              Server Backup
             </SidebarLink>
             <SidebarLink to="/" icon={Home} collapsed={collapsed}>
               Back to Dashboard

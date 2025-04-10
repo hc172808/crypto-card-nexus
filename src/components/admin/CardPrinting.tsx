@@ -13,8 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Printer, Download, RefreshCw, CreditCard } from "lucide-react";
+import { Printer, Download, RefreshCw, CreditCard, Edit, Save } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Dialog,
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog";
 
 type CardTemplate = "standard" | "premium" | "metal";
 type CardType = "virtual" | "physical";
@@ -24,6 +32,7 @@ interface User {
   name: string;
   email: string;
   cardNumber?: string;
+  customCardName?: string;
 }
 
 const mockUsers: User[] = [
@@ -39,9 +48,15 @@ const CardPrinting = () => {
   const [template, setTemplate] = useState<CardTemplate>("standard");
   const [cardType, setCardType] = useState<CardType>("virtual");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [users, setUsers] = useState(mockUsers);
   const printFrameRef = useRef<HTMLIFrameElement>(null);
   
-  const filteredUsers = mockUsers.filter(user => 
+  // For card customization
+  const [isCustomizeCardOpen, setIsCustomizeCardOpen] = useState(false);
+  const [customizingUser, setCustomizingUser] = useState<User | null>(null);
+  const [customCardName, setCustomCardName] = useState("");
+  
+  const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -74,6 +89,28 @@ const CardPrinting = () => {
         description: `Generated ${selectedUsers.length} ${cardType} cards ready for printing.`,
       });
     }, 1500);
+  };
+
+  const openCustomizeCard = (user: User) => {
+    setCustomizingUser(user);
+    setCustomCardName(user.customCardName || user.name);
+    setIsCustomizeCardOpen(true);
+  };
+
+  const saveCustomCardName = () => {
+    if (!customizingUser) return;
+    
+    setUsers(users.map(user => 
+      user.id === customizingUser.id 
+        ? { ...user, customCardName: customCardName } 
+        : user
+    ));
+    
+    setIsCustomizeCardOpen(false);
+    toast({
+      title: "Card Customized",
+      description: `Custom card name saved for ${customizingUser.name}.`,
+    });
   };
 
   const printCards = () => {
@@ -171,7 +208,7 @@ const CardPrinting = () => {
 
       // Add cards for each selected user
       selectedUsers.forEach(userId => {
-        const user = mockUsers.find(u => u.id === userId);
+        const user = users.find(u => u.id === userId);
         if (user) {
           // Card front
           doc.write(`
@@ -181,7 +218,7 @@ const CardPrinting = () => {
                 <div class="card-type">${cardType}</div>
                 <div>
                   <div class="card-number">${user.cardNumber || 'XXXX XXXX XXXX XXXX'}</div>
-                  <div class="card-holder">${user.name}</div>
+                  <div class="card-holder">${user.customCardName || user.name}</div>
                 </div>
                 <div class="barcode"></div>
               </div>
@@ -193,7 +230,7 @@ const CardPrinting = () => {
             <div class="card-container">
               <div class="card-back">
                 <div class="magnetic-strip"></div>
-                <div class="card-holder">${user.name}</div>
+                <div class="card-holder">${user.customCardName || user.name}</div>
                 <div class="barcode"></div>
               </div>
             </div>
@@ -269,11 +306,12 @@ const CardPrinting = () => {
 
         <div className="border rounded-md overflow-hidden">
           <div className="bg-muted px-4 py-2 border-b">
-            <div className="grid grid-cols-12 text-xs font-medium">
-              <div className="col-span-1">Select</div>
-              <div className="col-span-4">Name</div>
-              <div className="col-span-4">Email</div>
-              <div className="col-span-3">Card Number</div>
+            <div className="grid grid-cols-[1fr_3fr_3fr_3fr_2fr] text-xs font-medium">
+              <div>Select</div>
+              <div>Name</div>
+              <div>Email</div>
+              <div>Card Number</div>
+              <div>Actions</div>
             </div>
           </div>
           <div className="max-h-64 overflow-y-auto">
@@ -281,9 +319,9 @@ const CardPrinting = () => {
               filteredUsers.map(user => (
                 <div 
                   key={user.id} 
-                  className="grid grid-cols-12 py-2 px-4 hover:bg-muted/50 border-b last:border-0"
+                  className="grid grid-cols-[1fr_3fr_3fr_3fr_2fr] py-2 px-4 hover:bg-muted/50 border-b last:border-0 items-center"
                 >
-                  <div className="col-span-1">
+                  <div>
                     <input 
                       type="checkbox"
                       checked={selectedUsers.includes(user.id)}
@@ -291,9 +329,19 @@ const CardPrinting = () => {
                       className="w-4 h-4"
                     />
                   </div>
-                  <div className="col-span-4">{user.name}</div>
-                  <div className="col-span-4 text-muted-foreground">{user.email}</div>
-                  <div className="col-span-3 font-mono text-xs">{user.cardNumber || "No card"}</div>
+                  <div>{user.customCardName || user.name}</div>
+                  <div className="text-muted-foreground">{user.email}</div>
+                  <div className="font-mono text-xs">{user.cardNumber || "No card"}</div>
+                  <div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openCustomizeCard(user)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" /> 
+                      Customize Card
+                    </Button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -330,6 +378,62 @@ const CardPrinting = () => {
           </Button>
         </div>
       </CardFooter>
+
+      {/* Card Customization Dialog */}
+      <Dialog open={isCustomizeCardOpen} onOpenChange={setIsCustomizeCardOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Customize Card</DialogTitle>
+            <DialogDescription>
+              Customize the card name for {customizingUser?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="custom-name">Card Display Name</Label>
+              <Input
+                id="custom-name"
+                value={customCardName}
+                onChange={(e) => setCustomCardName(e.target.value)}
+                placeholder="Enter custom name to display on the card"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                This name will be printed on the card. Leave blank to use the user's actual name.
+              </p>
+            </div>
+
+            {/* Preview of the card */}
+            <div className="mt-4">
+              <Label>Card Preview</Label>
+              <div className="mt-2 w-full max-w-md aspect-[1.6/1] bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-4 text-white relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[radial-gradient(circle_at_50%_0,rgba(255,255,255,0.5),rgba(0,0,0,0))]"></div>
+                <div className="flex flex-col justify-between h-full">
+                  <div className="flex justify-between">
+                    <div className="font-bold text-lg">NEXUS CARD</div>
+                    <CreditCard size={24} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-mono my-2">**** **** **** {customizingUser?.cardNumber?.slice(-4) || "1234"}</div>
+                    <div className="text-xs uppercase font-bold">{customCardName || customizingUser?.name}</div>
+                    <div className="text-xs">VALID THRU 04/28</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCustomizeCardOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveCustomCardName}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <iframe 
         ref={printFrameRef} 
         style={{ display: 'none' }} 

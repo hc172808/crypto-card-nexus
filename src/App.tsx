@@ -22,6 +22,7 @@ import AgentCardPrinting from "./pages/agent/CardPrinting";
 import MobileApps from "./pages/MobileApps";
 import PaymentMethods from "./pages/PaymentMethods";
 import ApiAccess from "./pages/ApiAccess";
+import ServerBackup from "./pages/admin/ServerBackup";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="admin/agents" element={<AgentsAdminPage />} />
             <Route path="admin/mobile-apps" element={<MobileAppsAdminPage />} />
             <Route path="admin/mysql-admin" element={<MySQLAdminPage />} />
+            <Route path="admin/backup" element={<ServerBackup />} />
             
             {/* Agent Pages */}
             <Route path="agent/dashboard" element={<AgentDashboard />} />

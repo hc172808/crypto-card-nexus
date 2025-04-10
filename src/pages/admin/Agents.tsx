@@ -33,7 +33,26 @@ import {
   UsersRound,
   Filter,
   UserCheck,
+  Save,
+  X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Mock data - in a real app this would come from the API
 const mockAgents = [
@@ -89,6 +108,16 @@ const mockAgents = [
   },
 ];
 
+const regions = [
+  "North America",
+  "Europe",
+  "South America",
+  "Asia Pacific",
+  "Africa",
+  "Middle East",
+  "Global"
+];
+
 const AgentStatusBadge = ({ status }: { status: string }) => {
   switch (status) {
     case "active":
@@ -105,6 +134,16 @@ const AgentStatusBadge = ({ status }: { status: string }) => {
 const AgentsAdminPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [agents, setAgents] = useState(mockAgents);
+  const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
+  const [isEditAgentOpen, setIsEditAgentOpen] = useState(false);
+  const [newAgent, setNewAgent] = useState({
+    name: "",
+    email: "",
+    status: "active",
+    region: "Global",
+  });
+  const [selectedAgent, setSelectedAgent] = useState<typeof mockAgents[0] | null>(null);
+  const { toast } = useToast();
 
   const filteredAgents = agents.filter(
     (agent) =>
@@ -112,6 +151,61 @@ const AgentsAdminPage = () => {
       agent.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       agent.region.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddAgent = () => {
+    if (!newAgent.name || !newAgent.email) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newAgentId = (agents.length + 1).toString();
+    const agentToAdd = {
+      id: newAgentId,
+      name: newAgent.name,
+      email: newAgent.email,
+      status: newAgent.status,
+      region: newAgent.region,
+      assignedUsers: 0,
+      kycApprovals: 0,
+      lastActive: "Never",
+    };
+
+    setAgents([...agents, agentToAdd]);
+    setNewAgent({ name: "", email: "", status: "active", region: "Global" });
+    setIsAddAgentOpen(false);
+    toast({
+      title: "Success",
+      description: "Agent added successfully",
+    });
+  };
+
+  const handleEditAgent = () => {
+    if (!selectedAgent) return;
+    
+    setAgents(
+      agents.map((agent) => (agent.id === selectedAgent.id ? selectedAgent : agent))
+    );
+    
+    setIsEditAgentOpen(false);
+    toast({
+      title: "Success",
+      description: "Agent updated successfully",
+    });
+  };
+
+  const openEditDialog = (agent: typeof mockAgents[0]) => {
+    setSelectedAgent(agent);
+    setIsEditAgentOpen(true);
+  };
+
+  const updateSelectedAgentField = (field: string, value: string) => {
+    if (!selectedAgent) return;
+    setSelectedAgent({ ...selectedAgent, [field]: value });
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -125,7 +219,7 @@ const AgentsAdminPage = () => {
             Manage support agents and track their performance.
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsAddAgentOpen(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
           Add Agent
         </Button>
@@ -135,7 +229,7 @@ const AgentsAdminPage = () => {
         <CardHeader className="pb-3">
           <CardTitle>All Agents</CardTitle>
           <CardDescription>
-            Total of {mockAgents.length} agents in the system
+            Total of {agents.length} agents in the system
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -197,14 +291,14 @@ const AgentsAdminPage = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => openEditDialog(agent)}>Edit Agent</DropdownMenuItem>
                           <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Permissions</DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem>View Assigned Users</DropdownMenuItem>
                           <DropdownMenuItem>Edit Region</DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive">
-                            Deactivate
+                            {agent.status === "active" ? "Deactivate" : "Activate"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -216,6 +310,172 @@ const AgentsAdminPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Agent Dialog */}
+      <Dialog open={isAddAgentOpen} onOpenChange={setIsAddAgentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Agent</DialogTitle>
+            <DialogDescription>
+              Create a new support agent account
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newAgent.name}
+                onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={newAgent.email}
+                onChange={(e) => setNewAgent({ ...newAgent, email: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <Select 
+                value={newAgent.status}
+                onValueChange={(value) => setNewAgent({ ...newAgent, status: value })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="region" className="text-right">
+                Region
+              </Label>
+              <Select 
+                value={newAgent.region}
+                onValueChange={(value) => setNewAgent({ ...newAgent, region: value })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((region) => (
+                    <SelectItem key={region} value={region}>{region}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddAgentOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddAgent}>
+              Add Agent
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Agent Dialog */}
+      <Dialog open={isEditAgentOpen} onOpenChange={setIsEditAgentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Agent</DialogTitle>
+            <DialogDescription>
+              Update agent information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedAgent && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="edit-name"
+                  value={selectedAgent.name}
+                  onChange={(e) => updateSelectedAgentField("name", e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={selectedAgent.email}
+                  onChange={(e) => updateSelectedAgentField("email", e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-status" className="text-right">
+                  Status
+                </Label>
+                <Select 
+                  value={selectedAgent.status}
+                  onValueChange={(value) => updateSelectedAgentField("status", value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-region" className="text-right">
+                  Region
+                </Label>
+                <Select 
+                  value={selectedAgent.region}
+                  onValueChange={(value) => updateSelectedAgentField("region", value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions.map((region) => (
+                      <SelectItem key={region} value={region}>{region}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditAgentOpen(false)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={handleEditAgent}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
