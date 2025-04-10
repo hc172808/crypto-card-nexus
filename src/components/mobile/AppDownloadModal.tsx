@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { QrCode, Download, Smartphone, Apple } from "lucide-react";
+import { QrCode, Download, Smartphone, Apple, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AppDownloadModalProps {
   open: boolean;
@@ -18,6 +19,26 @@ interface AppDownloadModalProps {
 }
 
 export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) {
+  const { toast } = useToast();
+  const [downloadStarted, setDownloadStarted] = useState(false);
+  
+  const handleDirectDownload = () => {
+    setDownloadStarted(true);
+    toast({
+      title: "Download Started",
+      description: "Your Direct APK download has started"
+    });
+    
+    // Simulate download completion after a delay
+    setTimeout(() => {
+      setDownloadStarted(false);
+      toast({
+        title: "Download Complete",
+        description: "APK file downloaded successfully"
+      });
+    }, 2000);
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -69,9 +90,23 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
               <Smartphone className="h-4 w-4 mr-2" />
               Download on Google Play
             </Button>
-            <Button className="w-full" variant="secondary">
-              <Download className="h-4 w-4 mr-2" />
-              Direct APK Download
+            <Button 
+              className="w-full" 
+              variant="secondary"
+              onClick={handleDirectDownload}
+              disabled={downloadStarted}
+            >
+              {downloadStarted ? (
+                <>
+                  <Check className="h-4 w-4 mr-2 animate-pulse" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Direct APK Download
+                </>
+              )}
             </Button>
           </TabsContent>
         </Tabs>

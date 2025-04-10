@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Card,
@@ -26,11 +27,15 @@ import {
   Copy,
   Lock,
   Apple,
+  Save,
+  Check,
+  Download,
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { PinModal } from "@/components/PinModal";
 import { AppDownloadModal } from "@/components/mobile/AppDownloadModal";
 import ProfileLogo from "@/components/settings/ProfileLogo";
+import { Switch } from "@/components/ui/switch";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -39,6 +44,18 @@ const Settings = () => {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isChangePinModalOpen, setIsChangePinModalOpen] = useState(false);
   const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState(false);
+  const [smsAuthEnabled, setSmsAuthEnabled] = useState(false);
+  const [appAuthEnabled, setAppAuthEnabled] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+    phone: "+1 (555) 123-4567",
+    address: "123 Main St",
+    city: "New York",
+    state: "NY",
+    zip: "10001"
+  });
 
   const mockRecoveryPhrase = "shock friend hazard speed slim obvious brave token worry find shoe ocean";
   const mockPublicKey = "0x3a54f5c2d78b174b13b48b7f6d244eef1c15a5b9";
@@ -57,6 +74,71 @@ const Settings = () => {
       title: "PIN Verified",
       description: "You can now view your recovery phrase",
     });
+  };
+
+  const handleSaveChanges = () => {
+    toast({
+      title: "Success",
+      description: "Your profile has been updated successfully",
+    });
+  };
+
+  const handleApplyChanges = (section: string) => {
+    toast({
+      title: "Changes Applied",
+      description: `Your ${section} settings have been updated`,
+    });
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const toggleSmsAuth = () => {
+    setSmsAuthEnabled(!smsAuthEnabled);
+    if (!smsAuthEnabled) {
+      toast({
+        title: "SMS Authentication Enabled",
+        description: "You'll now receive verification codes via SMS",
+      });
+    } else {
+      toast({
+        title: "SMS Authentication Disabled",
+        description: "SMS verification has been turned off",
+      });
+    }
+  };
+
+  const toggleAppAuth = () => {
+    setAppAuthEnabled(!appAuthEnabled);
+    if (!appAuthEnabled) {
+      toast({
+        title: "App Authentication Enabled",
+        description: "You'll now use an authenticator app for verification",
+      });
+    } else {
+      toast({
+        title: "App Authentication Disabled",
+        description: "App verification has been turned off",
+      });
+    }
+  };
+
+  const handleDirectApkDownload = () => {
+    toast({
+      title: "Download Started",
+      description: "Your APK download has started",
+    });
+    // In a real app, this would trigger the download
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: "Your APK has been downloaded successfully",
+      });
+    }, 2000);
   };
 
   return (
@@ -92,43 +174,87 @@ const Settings = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="first-name">First name</Label>
-                      <Input id="first-name" defaultValue="John" />
+                      <Label htmlFor="firstName">First name</Label>
+                      <Input 
+                        id="firstName" 
+                        value={formData.firstName}
+                        onChange={handleFormChange}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last-name">Last name</Label>
-                      <Input id="last-name" defaultValue="Doe" />
+                      <Label htmlFor="lastName">Last name</Label>
+                      <Input 
+                        id="lastName" 
+                        value={formData.lastName}
+                        onChange={handleFormChange}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={formData.email}
+                      onChange={handleFormChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                    <Input 
+                      id="phone" 
+                      type="tel" 
+                      value={formData.phone}
+                      onChange={handleFormChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="address">Address</Label>
-                    <Input id="address" defaultValue="123 Main St" />
+                    <Input 
+                      id="address" 
+                      value={formData.address}
+                      onChange={handleFormChange}
+                    />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city">City</Label>
-                      <Input id="city" defaultValue="New York" />
+                      <Input 
+                        id="city" 
+                        value={formData.city}
+                        onChange={handleFormChange}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="state">State</Label>
-                      <Input id="state" defaultValue="NY" />
+                      <Input 
+                        id="state" 
+                        value={formData.state}
+                        onChange={handleFormChange}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="zip">ZIP Code</Label>
-                      <Input id="zip" defaultValue="10001" />
+                      <Input 
+                        id="zip" 
+                        value={formData.zip}
+                        onChange={handleFormChange}
+                      />
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button>Save Changes</Button>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">Cancel</Button>
+                  <div className="space-x-2">
+                    <Button variant="secondary" onClick={() => handleApplyChanges("profile")}>
+                      <Check className="h-4 w-4 mr-2" />
+                      Apply
+                    </Button>
+                    <Button onClick={handleSaveChanges}>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </Button>
+                  </div>
                 </CardFooter>
               </Card>
             </div>
@@ -270,7 +396,10 @@ const Settings = () => {
                       Receive code via text message
                     </p>
                   </div>
-                  <Button variant="outline">Enable</Button>
+                  <Switch
+                    checked={smsAuthEnabled}
+                    onCheckedChange={toggleSmsAuth}
+                  />
                 </div>
                 
                 <div className="flex justify-between items-center p-4 border rounded-md">
@@ -280,9 +409,18 @@ const Settings = () => {
                       Use Google Authenticator or similar
                     </p>
                   </div>
-                  <Button variant="outline">Enable</Button>
+                  <Switch
+                    checked={appAuthEnabled}
+                    onCheckedChange={toggleAppAuth}
+                  />
                 </div>
               </CardContent>
+              <CardFooter>
+                <Button onClick={() => handleApplyChanges("security")}>
+                  <Check className="h-4 w-4 mr-2" />
+                  Apply Changes
+                </Button>
+              </CardFooter>
             </Card>
             
             <Card>
@@ -382,11 +520,11 @@ const Settings = () => {
               <div>
                 <div className="text-sm font-medium mb-2">Transaction Notifications</div>
                 <div className="flex items-center gap-2 mb-2">
-                  <input type="checkbox" id="all-transactions" defaultChecked />
+                  <Switch id="all-transactions" defaultChecked />
                   <label htmlFor="all-transactions" className="text-sm">Notify for all transactions</label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="large-transactions" defaultChecked />
+                  <Switch id="large-transactions" defaultChecked />
                   <label htmlFor="large-transactions" className="text-sm">Notify only for transactions over $100</label>
                 </div>
               </div>
@@ -394,11 +532,17 @@ const Settings = () => {
               <div>
                 <div className="text-sm font-medium mb-2">Automatic Top-up</div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="auto-topup" />
+                  <Switch id="auto-topup" />
                   <label htmlFor="auto-topup" className="text-sm">Enable automatic top-up from wallet</label>
                 </div>
               </div>
             </CardContent>
+            <CardFooter>
+              <Button onClick={() => handleApplyChanges("card preferences")}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Preferences
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
 
@@ -422,21 +566,21 @@ const Settings = () => {
                       <p className="font-medium">Transaction Alerts</p>
                       <p className="text-sm text-muted-foreground">Receive emails for card transactions</p>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded-md">
                     <div>
                       <p className="font-medium">Security Alerts</p>
                       <p className="text-sm text-muted-foreground">Login attempts, password changes</p>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded-md">
                     <div>
                       <p className="font-medium">Crypto Price Alerts</p>
                       <p className="text-sm text-muted-foreground">Get notified of significant price changes</p>
                     </div>
-                    <input type="checkbox" />
+                    <Switch />
                   </div>
                 </div>
               </div>
@@ -449,20 +593,23 @@ const Settings = () => {
                       <p className="font-medium">Mobile App Notifications</p>
                       <p className="text-sm text-muted-foreground">Enable push notifications on your device</p>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded-md">
                     <div>
                       <p className="font-medium">Card Usage Alerts</p>
                       <p className="text-sm text-muted-foreground">Receive alerts when your card is used</p>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
                   </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Preferences</Button>
+              <Button onClick={() => handleApplyChanges("notification")}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Preferences
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -487,6 +634,7 @@ const Settings = () => {
                     Access your cards, wallets, and transactions on the go with our mobile app
                   </p>
                   <Button onClick={() => setIsAppDownloadModalOpen(true)}>
+                    <Download className="h-4 w-4 mr-2" />
                     Download Mobile App
                   </Button>
                 </div>

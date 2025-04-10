@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Printer, Download, RefreshCw, CreditCard } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type CardTemplate = "standard" | "premium" | "metal";
+type CardType = "virtual" | "physical";
 
 interface User {
   id: string;
@@ -35,6 +37,7 @@ const CardPrinting = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [template, setTemplate] = useState<CardTemplate>("standard");
+  const [cardType, setCardType] = useState<CardType>("virtual");
   const [isGenerating, setIsGenerating] = useState(false);
   const printFrameRef = useRef<HTMLIFrameElement>(null);
   
@@ -68,7 +71,7 @@ const CardPrinting = () => {
       setIsGenerating(false);
       toast({
         title: "Cards generated successfully",
-        description: `Generated ${selectedUsers.length} cards ready for printing.`,
+        description: `Generated ${selectedUsers.length} ${cardType} cards ready for printing.`,
       });
     }, 1500);
   };
@@ -151,6 +154,16 @@ const CardPrinting = () => {
                 background: #333;
                 margin: 20px 0;
               }
+              .card-type {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 10px;
+                text-transform: uppercase;
+                background: rgba(255,255,255,0.2);
+                padding: 2px 6px;
+                border-radius: 10px;
+              }
             </style>
           </head>
           <body>
@@ -165,6 +178,7 @@ const CardPrinting = () => {
             <div class="card-container">
               <div class="card-front">
                 <div class="logo">NEXUS CARD</div>
+                <div class="card-type">${cardType}</div>
                 <div>
                   <div class="card-number">${user.cardNumber || 'XXXX XXXX XXXX XXXX'}</div>
                   <div class="card-holder">${user.name}</div>
@@ -212,6 +226,23 @@ const CardPrinting = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Tabs value={cardType} onValueChange={(value) => setCardType(value as CardType)}>
+          <TabsList className="grid grid-cols-2 w-[400px]">
+            <TabsTrigger value="virtual">Virtual Cards</TabsTrigger>
+            <TabsTrigger value="physical">Physical Cards</TabsTrigger>
+          </TabsList>
+          <TabsContent value="virtual" className="pt-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Virtual cards can be issued instantly and used for online transactions.
+            </p>
+          </TabsContent>
+          <TabsContent value="physical" className="pt-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Physical cards will be printed and mailed to the user's registered address.
+            </p>
+          </TabsContent>
+        </Tabs>
+
         <div className="flex flex-col space-y-2">
           <Label htmlFor="template">Card Template</Label>
           <Select value={template} onValueChange={(value: CardTemplate) => setTemplate(value)}>

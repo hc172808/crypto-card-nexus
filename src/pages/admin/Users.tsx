@@ -32,7 +32,20 @@ import {
   UserPlus,
   Users,
   Filter,
+  X,
+  Save,
+  CreditCard,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data - in a real app this would come from the API
 const mockUsers = [
@@ -115,12 +128,66 @@ const KYCStatusBadge = ({ status }: { status: string }) => {
 const UsersAdminPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState(mockUsers);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    status: "active",
+    kycStatus: "pending",
+  });
+  const [selectedUser, setSelectedUser] = useState<typeof mockUsers[0] | null>(null);
+  const [isPrintCardOpen, setIsPrintCardOpen] = useState(false);
+  const { toast } = useToast();
 
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddUser = () => {
+    if (!newUser.name || !newUser.email) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newUserId = (users.length + 1).toString();
+    const userToAdd = {
+      id: newUserId,
+      name: newUser.name,
+      email: newUser.email,
+      status: newUser.status,
+      kycStatus: newUser.kycStatus,
+      wallets: 0,
+      cards: 0,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    setUsers([...users, userToAdd]);
+    setNewUser({ name: "", email: "", status: "active", kycStatus: "pending" });
+    setIsAddUserOpen(false);
+    toast({
+      title: "Success",
+      description: "User added successfully",
+    });
+  };
+
+  const handlePrintCard = (user: typeof mockUsers[0]) => {
+    setSelectedUser(user);
+    setIsPrintCardOpen(true);
+  };
+
+  const printCard = () => {
+    toast({
+      title: "Success",
+      description: `Virtual card for ${selectedUser?.name} sent to printing queue`,
+    });
+    setIsPrintCardOpen(false);
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -134,7 +201,7 @@ const UsersAdminPage = () => {
             Manage and monitor users, KYC status, and assigned cards.
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsAddUserOpen(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
           Add User
         </Button>
@@ -144,7 +211,7 @@ const UsersAdminPage = () => {
         <CardHeader className="pb-3">
           <CardTitle>All Users</CardTitle>
           <CardDescription>
-            Total of {mockUsers.length} users in the system
+            Total of {users.length} users in the system
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -206,6 +273,9 @@ const UsersAdminPage = () => {
                           <DropdownMenuItem>View Profile</DropdownMenuItem>
                           <DropdownMenuItem>Edit User</DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handlePrintCard(user)}>
+                            Print Virtual Card
+                          </DropdownMenuItem>
                           <DropdownMenuItem>Assign Agent</DropdownMenuItem>
                           <DropdownMenuItem>View KYC Details</DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -222,6 +292,97 @@ const UsersAdminPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add User Dialog */}
+      <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+            <DialogDescription>
+              Create a new user account in the system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newUser.name}
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddUser}>
+              Add User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Virtual Card Dialog */}
+      <Dialog open={isPrintCardOpen} onOpenChange={setIsPrintCardOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Print Virtual Card</DialogTitle>
+            <DialogDescription>
+              Generate a virtual card for {selectedUser?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-full max-w-md aspect-[1.6/1] bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-4 text-white relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[radial-gradient(circle_at_50%_0,rgba(255,255,255,0.5),rgba(0,0,0,0))]"></div>
+                <div className="flex flex-col justify-between h-full">
+                  <div className="flex justify-between">
+                    <div className="font-bold text-lg">NEXUS CARD</div>
+                    <CreditCard size={24} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-mono my-2">**** **** **** 4321</div>
+                    <div className="text-xs uppercase">{selectedUser?.name}</div>
+                    <div className="text-xs">VALID THRU 04/28</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-full max-w-md aspect-[1.6/1] bg-gray-100 rounded-xl p-4 relative overflow-hidden">
+                <div className="h-10 bg-black w-full my-4"></div>
+                <div className="h-8 bg-gradient-to-r from-gray-300 to-gray-400 w-full my-4"></div>
+                <div className="text-xs text-center mt-2">
+                  This card remains the property of Nexus Card Ltd.
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPrintCardOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={printCard}>
+              Print Card
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
