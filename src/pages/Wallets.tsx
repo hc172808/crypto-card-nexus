@@ -1,414 +1,275 @@
-
 import React, { useState, useEffect } from "react";
-import { Grid2X2, Plus, Wallet, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { WalletConnect, WalletProvider } from "@/components/wallets/WalletConnect";
-import { WalletItem, WalletType } from "@/components/wallets/WalletItem";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AddFundsModal } from "@/components/modals/AddFundsModal";
-import { CardType } from "@/components/cards/CardItem";
-import { useToast } from "@/hooks/use-toast";
-import { AddWalletModal } from "@/components/wallets/AddWalletModal";
-import { WalletDetailsModal } from "@/components/wallets/WalletDetailsModal";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { WalletItem, WalletType } from "@/components/wallets/WalletItem";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription as DialogDescriptionUI,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Copy, Plus, RefreshCw, Wallet as WalletIcon } from "lucide-react";
 
-// Demo wallet data with recovery phrases
-const demoWallets: WalletType[] = [
+const walletsData: WalletType[] = [
   {
-    id: "wallet-1",
-    address: "0x1234567890abcdef1234567890abcdef12345678",
+    id: "1",
+    name: "Personal Wallet",
+    address: "0xAb5801a7D398351b8bE11C439e05C5B3259cbCc7",
     chain: "ethereum",
     balance: {
       coin: "ETH",
-      amount: 1.245,
-      usdValue: 3200.87,
+      amount: 3.25,
+      usdValue: 6500.00,
     },
-    name: "My Ethereum Wallet",
     hasRecoveryPhrase: true,
     verified: true,
+    isIdentityVerified: true,
   },
   {
-    id: "wallet-2",
-    address: "0xabcdef1234567890abcdef1234567890abcdef12",
+    id: "2",
+    address: "0x47e172F6CfB6c7D01C1574fa3E69739916f85E69",
     chain: "binance",
     balance: {
       coin: "BNB",
-      amount: 5.78,
-      usdValue: 1004.76,
+      amount: 15.50,
+      usdValue: 4500.00,
     },
-    hasRecoveryPhrase: false,
+  },
+  {
+    id: "3",
+    address: "0x593169B961d66198e29208Ca46f64D2B939A237E",
+    chain: "polygon",
+    balance: {
+      coin: "MATIC",
+      amount: 250.75,
+      usdValue: 225.50,
+    },
+    hasRecoveryPhrase: true,
+    verified: false,
+    isIdentityVerified: false,
+  },
+  {
+    id: "4",
+    address: "0x6aB499Ac59ca51Be8e5D84A013981343264148E7",
+    chain: "solana",
+    balance: {
+      coin: "SOL",
+      amount: 8.12,
+      usdValue: 1624.00,
+    },
+    verified: true,
+    isIdentityVerified: true,
   },
 ];
 
-// Demo card data
-const demoCard: CardType = {
-  id: "card-1",
-  cardNumber: "4111111111111111",
-  expiryDate: "09/28",
-  cardholderName: "JOHN DOE",
-  cvv: "123",
-  balance: 2345.67,
-  type: "visa",
-  status: "active",
-};
-
 const Wallets = () => {
   const { toast } = useToast();
-  const [wallets, setWallets] = React.useState<WalletType[]>(demoWallets);
-  const [isFundModalOpen, setIsFundModalOpen] = React.useState(false);
-  const [isAddWalletModalOpen, setIsAddWalletModalOpen] = React.useState(false);
-  const [isWalletDetailsModalOpen, setIsWalletDetailsModalOpen] = React.useState(false);
-  const [selectedWallet, setSelectedWallet] = React.useState<WalletType | undefined>();
-  const [isIdVerificationOpen, setIsIdVerificationOpen] = useState(false);
-  const hasWallets = wallets.length > 0;
-  
-  const idVerificationForm = useForm({
-    defaultValues: {
-      fullName: "",
-      idType: "",
-      idNumber: "",
-      idFile: "",
-    }
-  });
-
-  const handleConnect = (provider: WalletProvider) => {
-    toast({
-      title: "Connecting wallet",
-      description: `Connecting to ${provider}...`,
-    });
-    setIsAddWalletModalOpen(true);
-  };
+  const [wallets, setWallets] = useState<WalletType[]>(walletsData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newWalletAddress, setNewWalletAddress] = useState("");
+  const [newWalletChain, setNewWalletChain] = useState<string>("ethereum");
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<WalletType | null>(null);
 
   const handleTransact = (wallet: WalletType) => {
-    setSelectedWallet(wallet);
-    setIsFundModalOpen(true);
-  };
-  
-  const handleAddWallet = (walletData: WalletType) => {
-    setWallets((prev) => [...prev, walletData]);
-    
     toast({
-      title: "Wallet added",
-      description: "Your wallet has been successfully added to your account",
-    });
-  };
-  
-  const handleRemoveWallet = (walletId: string) => {
-    setWallets((prev) => prev.filter(wallet => wallet.id !== walletId));
-  };
-  
-  const handleViewWalletDetails = (wallet: WalletType) => {
-    setSelectedWallet(wallet);
-    setIsWalletDetailsModalOpen(true);
-  };
-  
-  const handleAutoCreateWallet = () => {
-    // Generate a random Ethereum address
-    const randomAddress = "0x" + Array.from({length: 40}, () => 
-      "0123456789abcdef"[Math.floor(Math.random() * 16)]
-    ).join('');
-    
-    const newWallet: WalletType = {
-      id: `wallet-auto-${Date.now()}`,
-      address: randomAddress,
-      chain: "ethereum",
-      balance: {
-        coin: "ETH",
-        amount: 0,
-        usdValue: 0,
-      },
-      name: "My Auto-Created Wallet",
-      hasRecoveryPhrase: true,
-      recoveryPhrase: "auto generate twelve words for recovery phrase security backup wallet access",
-      verified: true,
-    };
-    
-    setWallets((prev) => [...prev, newWallet]);
-    
-    toast({
-      title: "Wallet created",
-      description: "Your new wallet has been automatically created",
-      variant: "success",
-    });
-  };
-  
-  const handleIdVerification = () => {
-    setIsIdVerificationOpen(false);
-    
-    // Update the currently selected wallet with ID verification
-    if (selectedWallet) {
-      const updatedWallets = wallets.map(wallet => 
-        wallet.id === selectedWallet.id ? { ...wallet, isIdentityVerified: true } : wallet
-      );
-      setWallets(updatedWallets);
-    }
-    
-    toast({
-      title: "ID Verification submitted",
-      description: "Your identity verification is being processed",
+      title: "Initiate Transaction",
+      description: `You are about to transact with wallet: ${wallet.address}`,
     });
   };
 
-  useEffect(() => {
-    // Check if user has no wallets after first render
-    if (!localStorage.getItem("wallets-initialized") && wallets.length === 0) {
-      localStorage.setItem("wallets-initialized", "true");
-      handleAutoCreateWallet();
-    }
-  }, []);
+  const handleViewDetails = (wallet: WalletType) => {
+    setSelectedWallet(wallet);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedWallet(null);
+  };
+
+  const copyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast({
+      title: "Address copied",
+      description: "Wallet address copied to clipboard",
+    });
+  };
+
+  const addWallet = () => {
+    setIsLoading(true);
+
+    // Simulate adding a wallet
+    setTimeout(() => {
+      const newWallet: WalletType = {
+        id: Date.now().toString(),
+        address: newWalletAddress,
+        chain: newWalletChain as WalletType["chain"],
+        balance: {
+          coin: "N/A",
+          amount: 0,
+          usdValue: 0,
+        },
+      };
+
+      setWallets([...wallets, newWallet]);
+      setIsModalOpen(false);
+      setNewWalletAddress("");
+      setIsLoading(false);
+
+      toast({
+        title: "Wallet Added",
+        description: `Wallet ${newWalletAddress} added successfully.`,
+      });
+    }, 1500);
+  };
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Wallet Management</h1>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleAutoCreateWallet}>
-            <Plus className="mr-2 h-4 w-4" />
-            Auto-Create Wallet
-          </Button>
-          <Button onClick={() => setIsAddWalletModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Connect Your Wallet
-          </Button>
-        </div>
+    <div className="container mx-auto py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <WalletIcon className="h-7 w-7" />
+          Wallets
+        </h1>
+        <p className="text-muted-foreground">
+          Manage your cryptocurrency wallets and track balances
+        </p>
       </div>
 
-      {hasWallets ? (
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="overview">
-              <Grid2X2 className="h-4 w-4 mr-2" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="wallets">
-              <Wallet className="h-4 w-4 mr-2" />
-              Your Wallets
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="mt-0">
-            <div className="grid gap-6">
-              <div>
-                <h2 className="text-lg font-medium mb-4">Total Balance</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-card p-4 rounded-lg border">
-                    <div className="text-sm text-muted-foreground">Total USD Value</div>
-                    <div className="text-2xl font-bold">
-                      $
-                      {wallets
-                        .reduce((total, wallet) => total + wallet.balance.usdValue, 0)
-                        .toFixed(2)}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-card p-4 rounded-lg border">
-                    <div className="text-sm text-muted-foreground">Connected Wallets</div>
-                    <div className="text-2xl font-bold">{wallets.length}</div>
-                  </div>
-                  
-                  <div className="bg-card p-4 rounded-lg border">
-                    <div className="text-sm text-muted-foreground">With Recovery Phrase</div>
-                    <div className="text-2xl font-bold">
-                      {wallets.filter(w => w.hasRecoveryPhrase).length}/{wallets.length}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-card p-4 rounded-lg border">
-                    <div className="text-sm text-muted-foreground">ID Verified</div>
-                    <div className="text-2xl font-bold">
-                      {wallets.filter(w => w.isIdentityVerified).length}/{wallets.length}
-                    </div>
-                  </div>
-                </div>
+      <div className="flex justify-end mb-4">
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Wallet
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Wallet</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="address" className="text-right">
+                  Address
+                </Label>
+                <Input
+                  id="address"
+                  value={newWalletAddress}
+                  onChange={(e) => setNewWalletAddress(e.target.value)}
+                  className="col-span-3"
+                />
               </div>
-              
-              <div>
-                <h2 className="text-lg font-medium mb-4">Your Wallets</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {wallets.map((wallet) => (
-                    <WalletItem
-                      key={wallet.id}
-                      wallet={wallet}
-                      onTransact={handleTransact}
-                      onViewDetails={handleViewWalletDetails}
-                    />
-                  ))}
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="chain" className="text-right">
+                  Chain
+                </Label>
+                <Select onValueChange={setNewWalletChain} defaultValue="ethereum">
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a chain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ethereum">Ethereum</SelectItem>
+                    <SelectItem value="binance">Binance</SelectItem>
+                    <SelectItem value="polygon">Polygon</SelectItem>
+                    <SelectItem value="solana">Solana</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="wallets" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {wallets.map((wallet) => (
-                <WalletItem
-                  key={wallet.id}
-                  wallet={wallet}
-                  onTransact={handleTransact}
-                  onViewDetails={handleViewWalletDetails}
-                />
-              ))}
-              
-              <div className="border-2 border-dashed rounded-lg flex items-center justify-center p-6 h-full">
-                <Button 
-                  variant="outline" 
-                  className="flex flex-col gap-2 h-auto py-8"
-                  onClick={() => setIsAddWalletModalOpen(true)}
-                >
-                  <Plus className="h-10 w-10" />
-                  <span>Connect Your Wallet</span>
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-12">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Connect Your First Wallet</h2>
-            <p className="text-muted-foreground">
-              Link your crypto wallet to fund your virtual cards directly from your crypto assets.
-              We support multiple blockchain networks and wallets.
-            </p>
-            <ul className="space-y-2 text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Connect MetaMask, WalletConnect, or other providers
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Fund cards directly from your crypto assets
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Monitor your balances across multiple chains
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Secure your assets with recovery phrases
-              </li>
-            </ul>
-            
-            <div className="flex gap-2 mt-6">
-              <Button onClick={handleAutoCreateWallet} variant="outline">
-                <Plus className="mr-2 h-4 w-4" />
-                Auto-Create Wallet
-              </Button>
-              <Button onClick={() => setIsAddWalletModalOpen(true)}>
-                <Wallet className="mr-2 h-4 w-4" />
-                Connect Existing Wallet
-              </Button>
-            </div>
-          </div>
-          
-          <WalletConnect onConnect={handleConnect} />
-        </div>
-      )}
-      
-      <AddFundsModal
-        isOpen={isFundModalOpen}
-        onClose={() => setIsFundModalOpen(false)}
-        card={demoCard}
-        wallets={wallets}
-      />
-      
-      <AddWalletModal
-        open={isAddWalletModalOpen}
-        onOpenChange={setIsAddWalletModalOpen}
-        onAddWallet={handleAddWallet}
-      />
-      
-      <WalletDetailsModal
-        isOpen={isWalletDetailsModalOpen}
-        onClose={() => setIsWalletDetailsModalOpen(false)}
-        onRemove={handleRemoveWallet}
-        wallet={selectedWallet}
-        onVerifyIdentity={() => {
-          setIsWalletDetailsModalOpen(false);
-          setIsIdVerificationOpen(true);
-        }}
-      />
-      
-      <Drawer open={isIdVerificationOpen} onOpenChange={setIsIdVerificationOpen}>
-        <DrawerContent className="p-6 max-h-[85vh]">
-          <div className="mx-auto w-full max-w-lg">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Shield className="h-6 w-6" />
-              Verify Your Identity
-            </h2>
-            
-            <p className="text-muted-foreground mb-6">
-              To comply with regulations and secure your wallet, please provide identity verification.
-            </p>
-            
-            <Form {...idVerificationForm}>
-              <form onSubmit={idVerificationForm.handleSubmit(handleIdVerification)} className="space-y-4">
-                <FormField
-                  control={idVerificationForm.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Legal Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={idVerificationForm.control}
-                  name="idType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID Type</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Passport, Driver's License, National ID" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={idVerificationForm.control}
-                  name="idNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ID Number" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={idVerificationForm.control}
-                  name="idFile"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Upload ID Document</FormLabel>
-                      <FormControl>
-                        <Input type="file" className="cursor-pointer" />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="pt-4">
-                  <Button type="submit" className="w-full">
-                    Submit Verification
+            <Button onClick={addWallet} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Wallet"
+              )}
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {wallets.map((wallet) => (
+          <WalletItem
+            key={wallet.id}
+            wallet={wallet}
+            onTransact={handleTransact}
+            onViewDetails={handleViewDetails}
+          />
+        ))}
+      </div>
+
+      {selectedWallet && (
+        <Dialog open={!!selectedWallet} onOpenChange={handleCloseDetails}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Wallet Details</DialogTitle>
+              <DialogDescriptionUI>
+                Details for wallet: {selectedWallet.address}
+              </DialogDescriptionUI>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Address:</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono text-sm">{selectedWallet.address}</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => copyAddress(selectedWallet.address)}
+                  >
+                    <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-              </form>
-            </Form>
-          </div>
-        </DrawerContent>
-      </Drawer>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Chain:</p>
+                <p className="text-sm">{selectedWallet.chain}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Balance:</p>
+                <p className="text-sm">
+                  {selectedWallet.balance.amount} {selectedWallet.balance.coin} (${selectedWallet.balance.usdValue.toFixed(2)})
+                </p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Recovery Phrase:</p>
+                <p className="text-sm">
+                  {selectedWallet.hasRecoveryPhrase ? "Available" : "Not Available"}
+                </p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Verification:</p>
+                <p className="text-sm">
+                  {selectedWallet.verified ? (
+                    <Badge variant="default" className="bg-green-500 hover:bg-green-600">Verified</Badge>
+                  ) : (
+                    <Badge variant="secondary">Unverified</Badge>
+                  )}
+                </p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Identity Verification:</p>
+                <p className="text-sm">
+                  {selectedWallet.isIdentityVerified ? (
+                    <Badge variant="success">Verified</Badge>
+                  ) : (
+                    <Badge variant="secondary">Unverified</Badge>
+                  )}
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

@@ -17,6 +17,9 @@ import {
   UserCheck,
   Shield,
   Smartphone,
+  Key,
+  Printer,
+  CreditCardIcon,
 } from "lucide-react";
 
 const SidebarLink = ({
@@ -99,6 +102,12 @@ export function Sidebar() {
             <SidebarLink to="/mobile-apps" icon={Smartphone} collapsed={collapsed}>
               Mobile Apps
             </SidebarLink>
+            <SidebarLink to="/payment-methods" icon={CreditCardIcon} collapsed={collapsed}>
+              Payment Methods
+            </SidebarLink>
+            <SidebarLink to="/api-access" icon={Key} collapsed={collapsed}>
+              API Access
+            </SidebarLink>
             <SidebarLink to="/settings" icon={Settings} collapsed={collapsed}>
               Settings
             </SidebarLink>
@@ -134,6 +143,9 @@ export function Sidebar() {
             </SidebarLink>
             <SidebarLink to="/agent/users" icon={Users} collapsed={collapsed}>
               Assigned Users
+            </SidebarLink>
+            <SidebarLink to="/agent/card-printing" icon={Printer} collapsed={collapsed}>
+              Card Printing
             </SidebarLink>
             <SidebarLink to="/" icon={Home} collapsed={collapsed}>
               Back to Dashboard

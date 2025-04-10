@@ -18,6 +18,8 @@ import MobileAppsAdminPage from "./pages/admin/MobileApps";
 import AgentDashboard from "./pages/agent/Dashboard";
 import AgentUsersPage from "./pages/agent/Users";
 import MobileApps from "./pages/MobileApps";
+import PaymentMethods from "./pages/PaymentMethods";
+import ApiAccess from "./pages/ApiAccess";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="transactions" element={<Transactions />} />
             <Route path="settings" element={<Settings />} />
             <Route path="mobile-apps" element={<MobileApps />} />
+            <Route path="payment-methods" element={<PaymentMethods />} />
+            <Route path="api-access" element={<ApiAccess />} />
             
             {/* Admin Pages */}
             <Route path="admin/server-setup" element={<ServerSetup />} />
@@ -45,6 +49,7 @@ const App = () => (
             {/* Agent Pages */}
             <Route path="agent/dashboard" element={<AgentDashboard />} />
             <Route path="agent/users" element={<AgentUsersPage />} />
+            <Route path="agent/card-printing" element={<CardPrinting />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

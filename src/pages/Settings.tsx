@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Card,
@@ -31,6 +30,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { PinModal } from "@/components/PinModal";
 import { AppDownloadModal } from "@/components/mobile/AppDownloadModal";
+import ProfileLogo from "@/components/settings/ProfileLogo";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -40,7 +40,6 @@ const Settings = () => {
   const [isChangePinModalOpen, setIsChangePinModalOpen] = useState(false);
   const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState(false);
 
-  // Mock data - in a real app this would come from a secure store
   const mockRecoveryPhrase = "shock friend hazard speed slim obvious brave token worry find shoe ocean";
   const mockPublicKey = "0x3a54f5c2d78b174b13b48b7f6d244eef1c15a5b9";
 
@@ -82,141 +81,146 @@ const Settings = () => {
 
         <TabsContent value="profile">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  Update your personal details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="first-name">First name</Label>
-                    <Input id="first-name" defaultValue="John" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="last-name">Last name</Label>
-                    <Input id="last-name" defaultValue="Doe" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="john.doe@example.com" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" defaultValue="123 Main St" />
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" defaultValue="New York" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input id="state" defaultValue="NY" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="zip">ZIP Code</Label>
-                    <Input id="zip" defaultValue="10001" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button>Save Changes</Button>
-              </CardFooter>
-            </Card>
-
-            <div className="space-y-6">
+            <div className="md:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Public Key</CardTitle>
+                  <CardTitle>Personal Information</CardTitle>
                   <CardDescription>
-                    Your blockchain wallet address
+                    Update your personal details
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <Input
-                        className="font-mono pr-10"
-                        readOnly
-                        value={showPublicKey ? mockPublicKey : "••••••••••••••••••••••••••••••••"}
-                      />
-                      <button
-                        className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowPublicKey(!showPublicKey)}
-                      >
-                        {showPublicKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="first-name">First name</Label>
+                      <Input id="first-name" defaultValue="John" />
                     </div>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() =>
-                        copyToClipboard(mockPublicKey, "Public key copied to clipboard")
-                      }
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Public Key
-                    </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="last-name">Last name</Label>
+                      <Input id="last-name" defaultValue="Doe" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input id="address" defaultValue="123 Main St" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <Input id="city" defaultValue="New York" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Input id="state" defaultValue="NY" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="zip">ZIP Code</Label>
+                      <Input id="zip" defaultValue="10001" />
+                    </div>
                   </div>
                 </CardContent>
+                <CardFooter>
+                  <Button>Save Changes</Button>
+                </CardFooter>
               </Card>
+            </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <KeyRound className="h-5 w-5" />
-                    Recovery Phrase
-                  </CardTitle>
-                  <CardDescription>
-                    Your wallet recovery phrase
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {showRecoveryPhrase ? (
-                      <div className="bg-muted p-3 rounded-md">
-                        <p className="font-mono text-sm break-all">{mockRecoveryPhrase}</p>
+            <div>
+              <ProfileLogo />
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Public Key</CardTitle>
+                    <CardDescription>
+                      Your blockchain wallet address
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <Input
+                          className="font-mono pr-10"
+                          readOnly
+                          value={showPublicKey ? mockPublicKey : "••••••••••••••••••••••••••••••••"}
+                        />
+                        <button
+                          className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowPublicKey(!showPublicKey)}
+                        >
+                          {showPublicKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
                       </div>
-                    ) : (
-                      <div className="bg-muted p-3 rounded-md flex items-center justify-between">
-                        <p className="font-mono text-sm">••••••• ••••• ••••••</p>
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                    <Button
-                      className="w-full"
-                      onClick={() => setIsPinModalOpen(true)}
-                      disabled={showRecoveryPhrase}
-                    >
-                      {showRecoveryPhrase ? "Recovery Phrase Revealed" : "View Recovery Phrase"}
-                    </Button>
-                    {showRecoveryPhrase && (
                       <Button
                         variant="outline"
                         className="w-full"
                         onClick={() =>
-                          copyToClipboard(mockRecoveryPhrase, "Recovery phrase copied to clipboard")
+                          copyToClipboard(mockPublicKey, "Public key copied to clipboard")
                         }
                       >
                         <Copy className="h-4 w-4 mr-2" />
-                        Copy Recovery Phrase
+                        Copy Public Key
                       </Button>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Keep your recovery phrase in a safe place. It provides access to your wallet.
-                      Never share it with anyone.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <KeyRound className="h-5 w-5" />
+                      Recovery Phrase
+                    </CardTitle>
+                    <CardDescription>
+                      Your wallet recovery phrase
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {showRecoveryPhrase ? (
+                        <div className="bg-muted p-3 rounded-md">
+                          <p className="font-mono text-sm break-all">{mockRecoveryPhrase}</p>
+                        </div>
+                      ) : (
+                        <div className="bg-muted p-3 rounded-md flex items-center justify-between">
+                          <p className="font-mono text-sm">••••••• ••••• ••••••</p>
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <Button
+                        className="w-full"
+                        onClick={() => setIsPinModalOpen(true)}
+                        disabled={showRecoveryPhrase}
+                      >
+                        {showRecoveryPhrase ? "Recovery Phrase Revealed" : "View Recovery Phrase"}
+                      </Button>
+                      {showRecoveryPhrase && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() =>
+                            copyToClipboard(mockRecoveryPhrase, "Recovery phrase copied to clipboard")
+                          }
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Recovery Phrase
+                        </Button>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Keep your recovery phrase in a safe place. It provides access to your wallet.
+                        Never share it with anyone.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -580,7 +584,6 @@ const Settings = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Modals */}
       <PinModal 
         open={isPinModalOpen} 
         onOpenChange={setIsPinModalOpen} 
