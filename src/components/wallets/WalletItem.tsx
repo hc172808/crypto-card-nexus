@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Copy, ExternalLink, Key } from "lucide-react";
+import { ArrowUpRight, Copy, ExternalLink, Key, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export type Chain = "ethereum" | "binance" | "polygon" | "solana";
@@ -19,6 +19,8 @@ export type WalletType = {
   name?: string;
   hasRecoveryPhrase?: boolean;
   recoveryPhrase?: string;
+  verified?: boolean;
+  isIdentityVerified?: boolean;
 };
 
 interface WalletItemProps {
@@ -65,6 +67,10 @@ export function WalletItem({ wallet, onTransact, onViewDetails }: WalletItemProp
             <span className="text-xl">{chainDetails.logo}</span>
             <div className="font-medium">{wallet.name || chainDetails.name}</div>
             {wallet.hasRecoveryPhrase && <Key size={12} className="text-green-500" />}
+            {wallet.verified && <Shield size={12} className="text-blue-500" />}
+            {wallet.isIdentityVerified && (
+              <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">ID Verified</span>
+            )}
           </div>
           <div 
             className="flex items-center gap-1 text-sm text-muted-foreground cursor-pointer hover:text-foreground"

@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { AlertCircle, Eye, EyeOff, Check } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Check, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -14,11 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WalletType } from "./WalletItem";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 interface WalletDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRemove: (walletId: string) => void;
+  onVerifyIdentity?: () => void;
   wallet: WalletType | undefined;
 }
 
@@ -26,6 +28,7 @@ export function WalletDetailsModal({
   isOpen, 
   onClose, 
   onRemove,
+  onVerifyIdentity,
   wallet 
 }: WalletDetailsModalProps) {
   const { toast } = useToast();
@@ -79,6 +82,7 @@ export function WalletDetailsModal({
       case "ethereum": return "Ethereum";
       case "binance": return "Binance Smart Chain";
       case "polygon": return "Polygon";
+      case "solana": return "Solana";
       default: return chain;
     }
   };
@@ -94,6 +98,21 @@ export function WalletDetailsModal({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="space-x-2">
+              {wallet.verified && (
+                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                  <Check className="h-3 w-3" /> Verified
+                </Badge>
+              )}
+              {wallet.isIdentityVerified && (
+                <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
+                  <Shield className="h-3 w-3" /> ID Verified
+                </Badge>
+              )}
+            </div>
+          </div>
+          
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-muted-foreground">Blockchain</div>
@@ -165,6 +184,26 @@ export function WalletDetailsModal({
                     </p>
                   </div>
                 )}
+              </div>
+            </>
+          )}
+          
+          {!wallet.isIdentityVerified && onVerifyIdentity && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium">Identity Verification</h3>
+                <p className="text-sm text-muted-foreground">
+                  Verifying your identity allows you to access additional features and higher transaction limits.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={onVerifyIdentity}
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  Verify Identity
+                </Button>
               </div>
             </>
           )}
