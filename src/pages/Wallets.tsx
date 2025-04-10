@@ -1,275 +1,250 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  CreditCard,
+  Wallet,
+  RefreshCw,
+  Building, // Using Building instead of Bank
+  CreditCardIcon,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Copy, Edit, Trash } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { WalletItem, WalletType } from "@/components/wallets/WalletItem";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription as DialogDescriptionUI,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Plus, RefreshCw, Wallet as WalletIcon } from "lucide-react";
-
-const walletsData: WalletType[] = [
-  {
-    id: "1",
-    name: "Personal Wallet",
-    address: "0xAb5801a7D398351b8bE11C439e05C5B3259cbCc7",
-    chain: "ethereum",
-    balance: {
-      coin: "ETH",
-      amount: 3.25,
-      usdValue: 6500.00,
-    },
-    hasRecoveryPhrase: true,
-    verified: true,
-    isIdentityVerified: true,
-  },
-  {
-    id: "2",
-    address: "0x47e172F6CfB6c7D01C1574fa3E69739916f85E69",
-    chain: "binance",
-    balance: {
-      coin: "BNB",
-      amount: 15.50,
-      usdValue: 4500.00,
-    },
-  },
-  {
-    id: "3",
-    address: "0x593169B961d66198e29208Ca46f64D2B939A237E",
-    chain: "polygon",
-    balance: {
-      coin: "MATIC",
-      amount: 250.75,
-      usdValue: 225.50,
-    },
-    hasRecoveryPhrase: true,
-    verified: false,
-    isIdentityVerified: false,
-  },
-  {
-    id: "4",
-    address: "0x6aB499Ac59ca51Be8e5D84A013981343264148E7",
-    chain: "solana",
-    balance: {
-      coin: "SOL",
-      amount: 8.12,
-      usdValue: 1624.00,
-    },
-    verified: true,
-    isIdentityVerified: true,
-  },
-];
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const Wallets = () => {
   const { toast } = useToast();
-  const [wallets, setWallets] = useState<WalletType[]>(walletsData);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newWalletAddress, setNewWalletAddress] = useState("");
-  const [newWalletChain, setNewWalletChain] = useState<string>("ethereum");
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedWallet, setSelectedWallet] = useState<WalletType | null>(null);
 
-  const handleTransact = (wallet: WalletType) => {
+  const onConnect = () => {
     toast({
-      title: "Initiate Transaction",
-      description: `You are about to transact with wallet: ${wallet.address}`,
+      title: "Connect Wallet",
+      description: "Connecting to your crypto wallet...",
     });
-  };
-
-  const handleViewDetails = (wallet: WalletType) => {
-    setSelectedWallet(wallet);
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedWallet(null);
-  };
-
-  const copyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    toast({
-      title: "Address copied",
-      description: "Wallet address copied to clipboard",
-    });
-  };
-
-  const addWallet = () => {
-    setIsLoading(true);
-
-    // Simulate adding a wallet
-    setTimeout(() => {
-      const newWallet: WalletType = {
-        id: Date.now().toString(),
-        address: newWalletAddress,
-        chain: newWalletChain as WalletType["chain"],
-        balance: {
-          coin: "N/A",
-          amount: 0,
-          usdValue: 0,
-        },
-      };
-
-      setWallets([...wallets, newWallet]);
-      setIsModalOpen(false);
-      setNewWalletAddress("");
-      setIsLoading(false);
-
-      toast({
-        title: "Wallet Added",
-        description: `Wallet ${newWalletAddress} added successfully.`,
-      });
-    }, 1500);
   };
 
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <WalletIcon className="h-7 w-7" />
+          <Wallet className="h-7 w-7" />
           Wallets
         </h1>
         <p className="text-muted-foreground">
-          Manage your cryptocurrency wallets and track balances
+          Manage your crypto wallets and connect them to your cards
         </p>
       </div>
 
-      <div className="flex justify-end mb-4">
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Wallet
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Wallet</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  value={newWalletAddress}
-                  onChange={(e) => setNewWalletAddress(e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="chain" className="text-right">
-                  Chain
-                </Label>
-                <Select onValueChange={setNewWalletChain} defaultValue="ethereum">
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a chain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ethereum">Ethereum</SelectItem>
-                    <SelectItem value="binance">Binance</SelectItem>
-                    <SelectItem value="polygon">Polygon</SelectItem>
-                    <SelectItem value="solana">Solana</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button onClick={addWallet} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                "Add Wallet"
-              )}
-            </Button>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {wallets.map((wallet) => (
-          <WalletItem
-            key={wallet.id}
-            wallet={wallet}
-            onTransact={handleTransact}
-            onViewDetails={handleViewDetails}
-          />
-        ))}
-      </div>
-
-      {selectedWallet && (
-        <Dialog open={!!selectedWallet} onOpenChange={handleCloseDetails}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Wallet Details</DialogTitle>
-              <DialogDescriptionUI>
-                Details for wallet: {selectedWallet.address}
-              </DialogDescriptionUI>
-            </DialogHeader>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Virtual Card
+            </CardTitle>
+            <CardDescription>Your primary virtual card</CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Address:</p>
-                <div className="flex items-center gap-2">
-                  <p className="font-mono text-sm">{selectedWallet.address}</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => copyAddress(selectedWallet.address)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium leading-none">
+                      John Doe
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      johndoe@example.com
+                    </p>
+                  </div>
                 </div>
+                <Badge variant="secondary">Active</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Chain:</p>
-                <p className="text-sm">{selectedWallet.chain}</p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Balance:</p>
-                <p className="text-sm">
-                  {selectedWallet.balance.amount} {selectedWallet.balance.coin} (${selectedWallet.balance.usdValue.toFixed(2)})
-                </p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Recovery Phrase:</p>
-                <p className="text-sm">
-                  {selectedWallet.hasRecoveryPhrase ? "Available" : "Not Available"}
-                </p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Verification:</p>
-                <p className="text-sm">
-                  {selectedWallet.verified ? (
-                    <Badge variant="default" className="bg-green-500 hover:bg-green-600">Verified</Badge>
-                  ) : (
-                    <Badge variant="secondary">Unverified</Badge>
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Identity Verification:</p>
-                <p className="text-sm">
-                  {selectedWallet.isIdentityVerified ? (
-                    <Badge variant="success">Verified</Badge>
-                  ) : (
-                    <Badge variant="secondary">Unverified</Badge>
-                  )}
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold">
+                  $1,250.00
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Available balance
                 </p>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Crypto Wallet
+            </CardTitle>
+            <CardDescription>Connect your crypto wallet</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium leading-none">
+                      Ethereum Wallet
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      0x1234...5678
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary">Connected</Badge>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold">
+                  5.25 ETH
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Wallet balance
+                </p>
+              </div>
+            </div>
+          </CardContent>
+          <Button
+            variant="outline" // Change from "success" to "outline"
+            size="sm"
+            onClick={onConnect}
+          >
+            Connect
+          </Button>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Bank Account
+            </CardTitle>
+            <CardDescription>Link your bank account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium leading-none">
+                      Bank of America
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      ****1234
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary">Linked</Badge>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold">
+                  $10,000.00
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Account balance
+                </p>
+              </div>
+            </div>
+          </CardContent>
+          <Button
+            variant="outline" // Change from "success" to "outline"
+            size="sm"
+            onClick={onConnect}
+          >
+            Connect
+          </Button>
+        </Card>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Transactions</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Transactions</CardTitle>
+            <CardDescription>Your recent transactions across all wallets</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Wallet</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Jan 9, 2024</TableCell>
+                  <TableCell>Payment to John Doe</TableCell>
+                  <TableCell>Virtual Card</TableCell>
+                  <TableCell className="text-right">-$50.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Jan 8, 2024</TableCell>
+                  <TableCell>Received from Jane Smith</TableCell>
+                  <TableCell>Ethereum Wallet</TableCell>
+                  <TableCell className="text-right">+$100.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Jan 7, 2024</TableCell>
+                  <TableCell>Transfer to Bank of America</TableCell>
+                  <TableCell>Virtual Card</TableCell>
+                  <TableCell className="text-right">-$200.00</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

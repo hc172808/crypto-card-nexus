@@ -39,6 +39,25 @@ export function PinModal({
     }
   }, [open]);
 
+  const safelySetItem = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      console.warn("Failed to access localStorage:", error);
+      return false;
+    }
+  };
+
+  const safelyGetItem = (key: string, defaultValue: string = "") => {
+    try {
+      return localStorage.getItem(key) || defaultValue;
+    } catch (error) {
+      console.warn("Failed to access localStorage:", error);
+      return defaultValue;
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -56,14 +75,16 @@ export function PinModal({
       }
 
       // Save new PIN (in a real app, this would be encrypted and sent to server)
-      localStorage.setItem("user_pin", pin);
-      toast({
-        title: "PIN Created",
-        description: "Your PIN has been successfully set",
-      });
+      const saved = safelySetItem("user_pin", pin);
+      if (saved) {
+        toast({
+          title: "PIN Created",
+          description: "Your PIN has been successfully set",
+        });
+      }
     } else {
       // Verify existing PIN (in a real app, this would be verified against server)
-      const savedPin = localStorage.getItem("user_pin") || "123456"; // Default for demo
+      const savedPin = safelyGetItem("user_pin", "123456"); // Default for demo
       if (pin !== savedPin) {
         setError("Incorrect PIN");
         return;

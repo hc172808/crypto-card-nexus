@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React from "react";
 import { 
   Card, 
   CardContent, 
@@ -14,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Plus, Trash2, Bank, CreditCardIcon, Banknote, CheckCircle, AlertCircle } from "lucide-react";
+import { CreditCard, Plus, Trash2, Building, CreditCardIcon, Wallet, RefreshCw } from "lucide-react";
 
 interface PaymentMethod {
   id: string;
@@ -72,7 +71,6 @@ const PaymentMethods = () => {
   };
 
   const handleAddCard = () => {
-    // Validate the card details
     if (cardNumber.length < 16 || !cardName || !expiryDate || !cvc) {
       toast({
         title: "Invalid card details",
@@ -95,7 +93,6 @@ const PaymentMethods = () => {
 
     setPaymentMethods([...paymentMethods, newCard]);
     
-    // Reset form
     setCardNumber("");
     setCardName("");
     setExpiryDate("");
@@ -129,7 +126,6 @@ const PaymentMethods = () => {
 
     setPaymentMethods([...paymentMethods, newBank]);
     
-    // Reset form
     setBankName("");
     setAccountNumber("");
     setRoutingNumber("");
@@ -161,7 +157,6 @@ const PaymentMethods = () => {
 
     setPaymentMethods([...paymentMethods, newWallet]);
     
-    // Reset form
     setWalletAddress("");
 
     toast({
@@ -227,8 +222,8 @@ const PaymentMethods = () => {
                     >
                       <div className="flex items-center gap-3">
                         {method.type === "card" && <CreditCardIcon className="h-10 w-10 p-2 bg-blue-100 text-blue-600 rounded-full" />}
-                        {method.type === "bank" && <Bank className="h-10 w-10 p-2 bg-green-100 text-green-600 rounded-full" />}
-                        {method.type === "crypto" && <Banknote className="h-10 w-10 p-2 bg-purple-100 text-purple-600 rounded-full" />}
+                        {method.type === "bank" && <Building className="h-10 w-10 p-2 bg-green-100 text-green-600 rounded-full" />}
+                        {method.type === "crypto" && <Wallet className="h-10 w-10 p-2 bg-purple-100 text-purple-600 rounded-full" />}
                         
                         <div>
                           <div className="font-medium flex items-center gap-2">

@@ -9,16 +9,24 @@ import { PinModal } from "@/components/PinModal";
 export function AppLayout() {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasPinStored, setHasPinStored] = useState(false);
 
   useEffect(() => {
-    // Check if user is authenticated
-    const hasPin = localStorage.getItem("user_pin") !== null;
-    
-    // If user has a PIN, show the PIN modal
-    if (hasPin && !isAuthenticated) {
-      setIsPinModalOpen(true);
-    } else {
-      // If no PIN is set, create a default one and mark as authenticated
+    // Safely check localStorage with error handling
+    try {
+      const hasPin = localStorage.getItem("user_pin") !== null;
+      setHasPinStored(hasPin);
+      
+      // If user has a PIN, show the PIN modal
+      if (hasPin && !isAuthenticated) {
+        setIsPinModalOpen(true);
+      } else {
+        // If no PIN is set, mark as authenticated
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      // If localStorage is not available, proceed without authentication
+      console.warn("localStorage is not available:", error);
       setIsAuthenticated(true);
     }
   }, [isAuthenticated]);
@@ -43,7 +51,7 @@ export function AppLayout() {
         open={isPinModalOpen}
         onOpenChange={setIsPinModalOpen}
         onSuccess={handlePinSuccess}
-        isNewPin={!localStorage.getItem("user_pin")}
+        isNewPin={!hasPinStored}
       />
     </div>
   );

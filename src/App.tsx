@@ -17,6 +17,7 @@ import AgentsAdminPage from "./pages/admin/Agents";
 import MobileAppsAdminPage from "./pages/admin/MobileApps";
 import AgentDashboard from "./pages/agent/Dashboard";
 import AgentUsersPage from "./pages/agent/Users";
+import AgentCardPrinting from "./pages/agent/CardPrinting";
 import MobileApps from "./pages/MobileApps";
 import PaymentMethods from "./pages/PaymentMethods";
 import ApiAccess from "./pages/ApiAccess";
@@ -49,7 +50,7 @@ const App = () => (
             {/* Agent Pages */}
             <Route path="agent/dashboard" element={<AgentDashboard />} />
             <Route path="agent/users" element={<AgentUsersPage />} />
-            <Route path="agent/card-printing" element={<CardPrinting />} />
+            <Route path="agent/card-printing" element={<AgentCardPrinting />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
