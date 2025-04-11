@@ -23,6 +23,7 @@ import MobileApps from "./pages/MobileApps";
 import PaymentMethods from "./pages/PaymentMethods";
 import ApiAccess from "./pages/ApiAccess";
 import ServerBackup from "./pages/admin/ServerBackup";
+import WalletConnect from "./components/wallets/WalletConnect";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route index element={<Index />} />
             <Route path="cards" element={<Cards />} />
             <Route path="wallets" element={<Wallets />} />
+            <Route path="wallets/connect" element={<WalletConnect />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="settings" element={<Settings />} />
             <Route path="mobile-apps" element={<MobileApps />} />

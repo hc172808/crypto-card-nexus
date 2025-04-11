@@ -38,6 +38,24 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
       });
     }, 2000);
   };
+
+  const handleAppStoreClick = () => {
+    window.open("https://apps.apple.com/app/crypto-card-nexus", "_blank");
+    toast({
+      title: "Opening App Store",
+      description: "Redirecting to the iOS App Store"
+    });
+    onOpenChange(false);
+  };
+
+  const handlePlayStoreClick = () => {
+    window.open("https://play.google.com/store/apps/details?id=app.lovable.cryptocardnexus", "_blank");
+    toast({
+      title: "Opening Play Store",
+      description: "Redirecting to Google Play Store"
+    });
+    onOpenChange(false);
+  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,7 +90,7 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
               Scan with your iPhone camera to download the app,
               <br /> or click below to visit the App Store
             </p>
-            <Button className="w-full" variant="outline">
+            <Button className="w-full" variant="outline" onClick={handleAppStoreClick}>
               <Apple className="h-4 w-4 mr-2" />
               Download on the App Store
             </Button>
@@ -86,7 +104,7 @@ export function AppDownloadModal({ open, onOpenChange }: AppDownloadModalProps) 
               Scan with your Android device to download the app,
               <br /> or click below for direct APK download
             </p>
-            <Button className="w-full" variant="outline">
+            <Button className="w-full" variant="outline" onClick={handlePlayStoreClick}>
               <Smartphone className="h-4 w-4 mr-2" />
               Download on Google Play
             </Button>

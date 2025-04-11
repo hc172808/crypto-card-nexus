@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Card,
@@ -52,7 +51,6 @@ import {
   Save,
 } from "lucide-react";
 
-// Mock backup data
 const mockBackups = [
   {
     id: "1",
@@ -99,6 +97,12 @@ const ServerBackup = () => {
   const [includeConfigs, setIncludeConfigs] = useState(true);
   const [backupName, setBackupName] = useState("");
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const [isRecoveryDialogOpen, setIsRecoveryDialogOpen] = useState(false);
+  const [recoveryType, setRecoveryType] = useState<"database" | "config" | "full" | null>(null);
+  const [isRecoveryInProgress, setIsRecoveryInProgress] = useState(false);
+  const [recoveryProgress, setRecoveryProgress] = useState(0);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 
   const handleBackupNow = () => {
     if (!backupName) {
@@ -145,7 +149,6 @@ const ServerBackup = () => {
   const handleDownload = (backupId: string) => {
     setIsDownloading(backupId);
     
-    // Simulate download
     setTimeout(() => {
       setIsDownloading(null);
       toast({
@@ -153,6 +156,49 @@ const ServerBackup = () => {
         description: "Your backup archive has been downloaded successfully.",
       });
     }, 3000);
+  };
+
+  const startRecovery = () => {
+    setIsRecoveryDialogOpen(false);
+    setIsRecoveryInProgress(true);
+    setRecoveryProgress(0);
+    
+    const recoveryInterval = setInterval(() => {
+      setRecoveryProgress((prevProgress) => {
+        const newProgress = prevProgress + 5;
+        if (newProgress >= 100) {
+          clearInterval(recoveryInterval);
+          setIsRecoveryInProgress(false);
+          
+          toast({
+            title: "Recovery completed successfully",
+            description: `${recoveryType} recovery has been completed.`,
+          });
+        }
+        return newProgress;
+      });
+    }, 300);
+  };
+
+  const handleRecoverySelect = (type: "database" | "config" | "full") => {
+    setRecoveryType(type);
+    setIsRecoveryDialogOpen(true);
+  };
+
+  const handleScheduleConfig = () => {
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleViewHistory = () => {
+    setIsHistoryDialogOpen(true);
+  };
+
+  const saveScheduleSettings = () => {
+    setIsScheduleDialogOpen(false);
+    toast({
+      title: "Schedule updated",
+      description: "Backup schedule has been updated successfully."
+    });
   };
 
   return (
@@ -243,11 +289,19 @@ const ServerBackup = () => {
                 <UploadCloud className="h-4 w-4 mr-2" />
                 Create New Backup
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={handleScheduleConfig}
+              >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Configure Schedule
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={handleViewHistory}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 View Backup History
               </Button>
@@ -276,6 +330,32 @@ const ServerBackup = () => {
               <Progress value={backupProgress} />
               <p className="text-sm text-muted-foreground mt-2">
                 Please do not close this page until the backup is complete. This may take several minutes.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isRecoveryInProgress && (
+        <Card className="mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 animate-spin" />
+              Recovery in Progress
+            </CardTitle>
+            <CardDescription>
+              Restoring {recoveryType === "full" ? "Full System" : recoveryType === "database" ? "Database" : "Configuration Files"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Progress</span>
+                <span>{recoveryProgress}%</span>
+              </div>
+              <Progress value={recoveryProgress} />
+              <p className="text-sm text-muted-foreground mt-2">
+                Please do not close this page until the recovery is complete. This may take several minutes.
               </p>
             </div>
           </CardContent>
@@ -383,7 +463,12 @@ const ServerBackup = () => {
                           <p className="text-sm text-muted-foreground mt-1">
                             Restore only database content without affecting system files or configuration.
                           </p>
-                          <Button className="mt-3" variant="outline" size="sm">
+                          <Button 
+                            className="mt-3" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRecoverySelect("database")}
+                          >
                             Select
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
@@ -401,7 +486,12 @@ const ServerBackup = () => {
                           <p className="text-sm text-muted-foreground mt-1">
                             Restore system configuration files while preserving data and content.
                           </p>
-                          <Button className="mt-3" variant="outline" size="sm">
+                          <Button 
+                            className="mt-3" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRecoverySelect("config")}
+                          >
                             Select
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
@@ -419,7 +509,12 @@ const ServerBackup = () => {
                           <p className="text-sm text-muted-foreground mt-1">
                             Complete restoration of all system files, database, and configuration.
                           </p>
-                          <Button className="mt-3" variant="outline" size="sm">
+                          <Button 
+                            className="mt-3" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRecoverySelect("full")}
+                          >
                             Select
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
@@ -578,7 +673,6 @@ const ServerBackup = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Backup Dialog */}
       <AlertDialog open={isBackupDialogOpen} onOpenChange={setIsBackupDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -627,7 +721,7 @@ const ServerBackup = () => {
               </div>
               
               <div className="bg-blue-50 border border-blue-200 rounded-md p-3 flex items-start">
-                <Info className="text-blue-500 h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                <Info className="text-blue-500 h-5 w-5 mr-2 flex-shrink-0" />
                 <div className="text-sm text-blue-700">
                   Creating a backup may temporarily affect system performance.
                   This process can take several minutes depending on your data size.
@@ -644,6 +738,154 @@ const ServerBackup = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={isRecoveryDialogOpen} onOpenChange={setIsRecoveryDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {recoveryType === "database" ? "Database Recovery" : 
+               recoveryType === "config" ? "Configuration Recovery" : 
+               "Full System Recovery"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to restore your {recoveryType === "database" ? "database" : 
+                                                   recoveryType === "config" ? "configuration files" : 
+                                                   "entire system"}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start">
+              <AlertCircle className="text-red-500 h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-700">
+                This will overwrite your current {recoveryType === "database" ? "database" : 
+                                                 recoveryType === "config" ? "configuration" : 
+                                                 "system"}. Make sure you have a backup before proceeding.
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={startRecovery}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Proceed with Recovery
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Configure Backup Schedule</AlertDialogTitle>
+            <AlertDialogDescription>
+              Set up automatic backup schedule
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label>Backup Frequency</Label>
+                <Select defaultValue="weekly">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Time of Day</Label>
+                <Input type="time" defaultValue="01:00" />
+              </div>
+              <div className="space-y-2">
+                <Label>Backup Type</Label>
+                <Select defaultValue="full">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select backup type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">Full System Backup</SelectItem>
+                    <SelectItem value="database">Database Only</SelectItem>
+                    <SelectItem value="config">Configuration Files</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={saveScheduleSettings}>
+              Save Schedule
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+        <AlertDialogContent className="max-w-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Backup History</AlertDialogTitle>
+            <AlertDialogDescription>
+              View all backup history and restore points
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 h-[400px] overflow-y-auto">
+            <div className="rounded-md border">
+              <div className="bg-muted py-3 px-4 border-b grid grid-cols-12">
+                <div className="col-span-4 font-medium">Backup Name</div>
+                <div className="col-span-3 font-medium">Date</div>
+                <div className="col-span-1 font-medium">Size</div>
+                <div className="col-span-2 font-medium">Type</div>
+                <div className="col-span-2 font-medium text-right">Actions</div>
+              </div>
+              <div className="divide-y">
+                {backups.map((backup) => (
+                  <div key={backup.id} className="py-3 px-4 grid grid-cols-12 items-center">
+                    <div className="col-span-4 flex items-center">
+                      <FileArchive className="h-4 w-4 mr-2 text-blue-500" />
+                      {backup.name}
+                    </div>
+                    <div className="col-span-3 text-muted-foreground">{backup.date}</div>
+                    <div className="col-span-1">{backup.size}</div>
+                    <div className="col-span-2">
+                      {backup.type === "full" ? (
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs">Full System</span>
+                      ) : backup.type === "database" ? (
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs">Database</span>
+                      ) : (
+                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs">Config</span>
+                      )}
+                    </div>
+                    <div className="col-span-2 flex justify-end space-x-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleDownload(backup.id)}
+                        disabled={isDownloading === backup.id}
+                      >
+                        {isDownloading === backup.id ? (
+                          <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-1" />
+                        )}
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 };

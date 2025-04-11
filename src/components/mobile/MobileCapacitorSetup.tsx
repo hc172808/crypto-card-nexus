@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Card,
@@ -76,6 +77,40 @@ npx cap open android # For Android
 \`\`\`
 `;
 
+  const handleGenerateIOSProject = () => {
+    toast({
+      title: "Generating iOS Project",
+      description: "iOS project generation started. This may take a few moments."
+    });
+    
+    // Simulate project generation
+    setTimeout(() => {
+      toast({
+        title: "iOS Project Ready",
+        description: "iOS project has been successfully generated."
+      });
+    }, 3000);
+  };
+
+  const handleGenerateAndroidProject = () => {
+    toast({
+      title: "Generating Android Project",
+      description: "Android project generation started. This may take a few moments."
+    });
+    
+    // Simulate project generation
+    setTimeout(() => {
+      toast({
+        title: "Android Project Ready",
+        description: "Android project has been successfully generated."
+      });
+    }, 3000);
+  };
+
+  const openCapacitorDocs = () => {
+    window.open("https://capacitorjs.com/docs", "_blank");
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -115,11 +150,15 @@ npx cap open android # For Android
         </CardContent>
         <CardFooter className="flex flex-col items-start space-y-4">
           <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button className="flex-1" onClick={() => window.open("https://capacitorjs.com/docs", "_blank")}>
+            <Button className="flex-1" onClick={openCapacitorDocs}>
               <ExternalLink className="h-4 w-4 mr-2" />
               Capacitor Docs
             </Button>
-            <Button variant="outline" className="flex-1" onClick={() => copyToClipboard(setupInstructions, "Setup instructions copied")}>
+            <Button 
+              variant="outline" 
+              className="flex-1" 
+              onClick={() => copyToClipboard(setupInstructions, "Setup instructions copied")}
+            >
               <CopyCheck className="h-4 w-4 mr-2" />
               Copy Instructions
             </Button>
@@ -165,7 +204,10 @@ npx cap open android # For Android
             </div>
           </CardContent>
           <CardFooter>
-            <Button className="w-full">
+            <Button 
+              className="w-full"
+              onClick={handleGenerateIOSProject}
+            >
               <Code className="h-4 w-4 mr-2" />
               Generate iOS Project
             </Button>
@@ -209,7 +251,10 @@ npx cap open android # For Android
             </div>
           </CardContent>
           <CardFooter>
-            <Button className="w-full">
+            <Button 
+              className="w-full"
+              onClick={handleGenerateAndroidProject}
+            >
               <Code className="h-4 w-4 mr-2" />
               Generate Android Project
             </Button>
