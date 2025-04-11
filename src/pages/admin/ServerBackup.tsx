@@ -25,6 +25,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   Download,
@@ -42,6 +49,7 @@ import {
   Info,
   CheckCircle,
   ArrowRight,
+  Save,
 } from "lucide-react";
 
 // Mock backup data
